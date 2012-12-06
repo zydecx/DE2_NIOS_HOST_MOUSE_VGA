@@ -4,6 +4,14 @@
 #include "GOMOKU.h"
 
 //-------------------------------------------------------------------------
+void clean_screen()
+{
+    int ex, ey;
+    for (ex=0; ex<VGA_WIDTH; ++ex)
+        for (ey=0; ey<VGA_HEIGHT; ++ey)
+            Vga_Clr_Pixel(VGA_0_BASE, ex, ey);
+}
+//-------------------------------------------------------------------------
 void gomoku_board_display()
 {
    int ex, ey;
@@ -16,4 +24,10 @@ void gomoku_board_display()
             Vga_Set_Pixel(VGA_0_BASE, ey, ex*BOARD_VER_MARGIN);
    }
 }
+//-------------------------------------------------------------------------
+//void gomoku_game_start()
+//{
+//    clean_screen();
+//    gomoku_board_display();
+//}
 //-------------------------------------------------------------------------

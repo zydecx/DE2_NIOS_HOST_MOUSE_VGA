@@ -7,6 +7,8 @@
 #include "VGA.h"
 #include "GOMOKU.h"
 
+int Board_Piece_Record[BOARD_CELL_NO][BOARD_CELL_NO]={0};
+
 int maxmin(int no, int max, int min)
 {
  if(no>max) {no=max;}
@@ -39,7 +41,7 @@ void play_mouse(unsigned int addr)
 
  unsigned int tog=0;
  
- unsigned int flag = 0;
+ unsigned int flag = 0; //Black Piece(1=1-2*flag) as default
  
  freq=0x00;
  erase_all();
@@ -97,10 +99,10 @@ void play_mouse(unsigned int addr)
     //pY-Y coordinate of the cursor of mouse
     int ii,jj;
     int pXc, pYc, pXcc, pYcc;
-    pXc = pX / BOARD_HOR_MARGIN;    
-    pXcc = pX % BOARD_HOR_MARGIN;
-    pYc = pY / BOARD_VER_MARGIN;
-    pYcc = pY % BOARD_VER_MARGIN;
+    pXc = (pX-BOARD_LEFT_EDGE) / BOARD_HOR_MARGIN;    
+    pXcc = (pX-BOARD_LEFT_EDGE) % BOARD_HOR_MARGIN;
+    pYc = (pY-BOARD_TOP_EDGE) / BOARD_VER_MARGIN;
+    pYcc = (pY-BOARD_TOP_EDGE) % BOARD_VER_MARGIN;
     if (pXcc > BOARD_HOR_MARGIN/2)
     {
         pXc++;
@@ -111,36 +113,50 @@ void play_mouse(unsigned int addr)
         pYc++;
         pYcc = BOARD_VER_MARGIN - pYcc;
     }
-    if ((pXcc*pXcc+pYcc*pYcc)>225 || (pXc * pYc) == 0 || pXc > BOARD_CELL_NO || pYc > BOARD_CELL_NO) continue;
+    if (pX<BOARD_LEFT_EDGE && BOARD_LEFT_EDGE-pX<BOARD_PIECE_OFFSET)
+    {
+        pXc = 0;
+        pXcc = BOARD_LEFT_EDGE-pX;
+    }
+    if (pY<BOARD_TOP_EDGE && BOARD_TOP_EDGE-pY<BOARD_PIECE_OFFSET)
+    {
+        pYc = 0;
+        pYcc = BOARD_TOP_EDGE-pY;
+    }
+    if ((pXcc*pXcc+pYcc*pYcc)>BOARD_PIECE_OFFSET*BOARD_PIECE_OFFSET)    continue;
+    if(pXc < 0 || pYc < 0 || pXc >= BOARD_CELL_NO || pYc >= BOARD_CELL_NO) continue;
+    if(Board_Piece_Record[pYc][pXc] != 0)  continue;
+    
   /*if(B==1)
   Vga_Set_Pixel(VGA_0_BASE,pX,pY);*/
   if(B==1){
-    if (flag == 0)
+    Board_Piece_Record[pYc][pXc] = 1-2*flag;
+    if (flag == 1)
     {
-        for (ii=-12; ii<13; ++ii)
+        for (ii=-BOARD_PIECE_OFFSET; ii<BOARD_PIECE_OFFSET+1; ++ii)
         {
-            for (jj=-12; jj<13; ++jj)
+            for (jj=-BOARD_PIECE_RADIUS; jj<BOARD_PIECE_RADIUS+1; ++jj)
             {   
-                if (ii*ii+jj*jj>144)    continue;
-                Vga_Set_Pixel(VGA_0_BASE, pXc*BOARD_HOR_MARGIN+ii, (pYc*BOARD_VER_MARGIN+jj));
+                if (ii*ii+jj*jj>BOARD_PIECE_RADIUS*BOARD_PIECE_RADIUS)    continue;
+                Vga_Set_Pixel(VGA_0_BASE, pXc*BOARD_HOR_MARGIN+BOARD_LEFT_EDGE+ii, (pYc*BOARD_VER_MARGIN+BOARD_TOP_EDGE+jj));
             }
         }
-        flag = 1;
+        flag = 0;   //Set back to Black Piece
     }
     else
     {
-        for (ii=-12; ii<13; ++ii)
+        for (ii=-BOARD_PIECE_RADIUS; ii<BOARD_PIECE_RADIUS+1; ++ii)
         {
-            for (jj=-12; jj<13; ++jj)
+            for (jj=-BOARD_PIECE_RADIUS; jj<BOARD_PIECE_RADIUS+1; ++jj)
             {   
-                if(ii*ii+jj*jj>144)    continue;
-                if(ii*ii+jj*jj>100)
-                    Vga_Set_Pixel(VGA_0_BASE,pXc*BOARD_HOR_MARGIN+ii,(pYc*BOARD_VER_MARGIN+jj));
+                if(ii*ii+jj*jj>BOARD_PIECE_RADIUS*BOARD_PIECE_RADIUS)    continue;
+                if(ii*ii+jj*jj>BOARD_PIECE_RADIUS*BOARD_PIECE_RADIUS*25/36)
+                    Vga_Set_Pixel(VGA_0_BASE,pXc*BOARD_HOR_MARGIN+BOARD_LEFT_EDGE+ii,(pYc*BOARD_VER_MARGIN+BOARD_TOP_EDGE+jj));
                 else
-                    Vga_Clr_Pixel(VGA_0_BASE,pXc*BOARD_HOR_MARGIN+ii,(pYc*BOARD_VER_MARGIN+jj));
+                    Vga_Clr_Pixel(VGA_0_BASE,pXc*BOARD_HOR_MARGIN+BOARD_LEFT_EDGE+ii,(pYc*BOARD_VER_MARGIN+BOARD_TOP_EDGE+jj));
             }
         }
-        flag = 0;
+        flag = 1;   //Set back to White Piece
     }
     
     /*

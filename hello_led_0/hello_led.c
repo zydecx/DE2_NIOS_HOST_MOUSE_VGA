@@ -35,6 +35,8 @@ unsigned int		hc_com;
 unsigned int		dc_data;
 unsigned int		dc_com;
 
+//extern int Board_Piece_Record[BOARD_CELL_NO][BOARD_CELL_NO]; 
+
 int main(void)
 {
   VGA_Ctrl_Reg vga_ctrl_set;
@@ -49,7 +51,9 @@ int main(void)
   Set_Pixel_Off_Color(0,0,0);
   Set_Cursor_Color(576,768,0);
   
+  clean_screen();
   gomoku_board_display();
+//  gomoku_game_start();
 //  int ex;
 //  for(ex=30;ex<450;ex++)
 //  {
