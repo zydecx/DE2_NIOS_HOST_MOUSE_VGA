@@ -5,6 +5,7 @@
 #include "Test.h"
 #include "sys/alt_irq.h"
 #include "VGA.h"
+#include "GOMOKU.h"
 
 int maxmin(int no, int max, int min)
 {
@@ -89,25 +90,28 @@ void play_mouse(unsigned int addr)
   IOWR(SEG7_DISPLAY_BASE,0,(pX<<16)+pY);
   IOWR(LED_RED_BASE,0,pX);
   IOWR(LED_GREEN_BASE,0,pY);
+  
+    Set_Cursor_XY(pX,pY);
 
+    //pX-X coordinate of the cursor of mouse
+    //pY-Y coordinate of the cursor of mouse
     int ii,jj;
-    int pXc, pYr, pXcc, pYrr;
-    pXc = pX / 40;
-    pXcc = pX - pXc * 40;
-    pYr = pY / 30;
-    pYrr = pY - pYr * 30;
-    if (pXcc > 20)
+    int pXc, pYc, pXcc, pYcc;
+    pXc = pX / BOARD_HOR_MARGIN;    
+    pXcc = pX % BOARD_HOR_MARGIN;
+    pYc = pY / BOARD_VER_MARGIN;
+    pYcc = pY % BOARD_VER_MARGIN;
+    if (pXcc > BOARD_HOR_MARGIN/2)
     {
         pXc++;
-        pXcc = 40 - pXcc;
+        pXcc = BOARD_HOR_MARGIN - pXcc;
     }
-    if (pYrr > 15)
+    if (pYcc > BOARD_VER_MARGIN/2)
     {
-        pYr++;
-        pYrr = 30 - pYrr;
+        pYc++;
+        pYcc = BOARD_VER_MARGIN - pYcc;
     }
-  Set_Cursor_XY(pX,pY);
-    if ((pXcc*pXcc+pYrr*pYrr)>225 || (pXc * pYr) == 0) continue;
+    if ((pXcc*pXcc+pYcc*pYcc)>225 || (pXc * pYc) == 0 || pXc > BOARD_CELL_NO || pYc > BOARD_CELL_NO) continue;
   /*if(B==1)
   Vga_Set_Pixel(VGA_0_BASE,pX,pY);*/
   if(B==1){
@@ -115,9 +119,10 @@ void play_mouse(unsigned int addr)
     {
         for (ii=-12; ii<13; ++ii)
         {
-            for (jj=-12;jj<13;++jj)
-            {   if(ii*ii+jj*jj>145)continue;
-                Vga_Set_Pixel(VGA_0_BASE,pXc*40+ii,(pYr*30+jj));
+            for (jj=-12; jj<13; ++jj)
+            {   
+                if (ii*ii+jj*jj>144)    continue;
+                Vga_Set_Pixel(VGA_0_BASE, pXc*BOARD_HOR_MARGIN+ii, (pYc*BOARD_VER_MARGIN+jj));
             }
         }
         flag = 1;
@@ -126,12 +131,13 @@ void play_mouse(unsigned int addr)
     {
         for (ii=-12; ii<13; ++ii)
         {
-            for (jj=-12;jj<13;++jj)
-            {   if(ii*ii+jj*jj>145)continue;
+            for (jj=-12; jj<13; ++jj)
+            {   
+                if(ii*ii+jj*jj>144)    continue;
                 if(ii*ii+jj*jj>100)
-                    Vga_Set_Pixel(VGA_0_BASE,pXc*40+ii,(pYr*30+jj));
+                    Vga_Set_Pixel(VGA_0_BASE,pXc*BOARD_HOR_MARGIN+ii,(pYc*BOARD_VER_MARGIN+jj));
                 else
-                    Vga_Clr_Pixel(VGA_0_BASE,pXc*40+ii,(pYr*30+jj));
+                    Vga_Clr_Pixel(VGA_0_BASE,pXc*BOARD_HOR_MARGIN+ii,(pYc*BOARD_VER_MARGIN+jj));
             }
         }
         flag = 0;
@@ -213,11 +219,10 @@ void play_mouse(unsigned int addr)
   Vga_Set_Pixel(VGA_0_BASE,pX+1,(pY+4));*/
   }
   else if(B==2)
-  Vga_Clr_Pixel(VGA_0_BASE,pXc*40,pYr*30);
+    Vga_Clr_Pixel(VGA_0_BASE,pX,pY);
    
-  }
-  while((r16(HcRhP2) & 0x01) ==0x01);
-     printf("\nMouse Not Detected");
+  }while((r16(HcRhP2) & 0x01) ==0x01);
+ printf("\nMouse Not Detected");
 }
 
 void mouse(void)

@@ -28,6 +28,7 @@
 #include "buf_man.c"
 #include "reg.c"
 #include "port.c"
+#include "GOMOKU.h"
 
 unsigned int		hc_data;
 unsigned int		hc_com;
@@ -46,47 +47,48 @@ int main(void)
   Vga_Write_Ctrl(VGA_0_BASE, vga_ctrl_set.Value);
   Set_Pixel_On_Color(1023,1023,1023);
   Set_Pixel_Off_Color(0,0,0);
-  Set_Cursor_Color(128,128,872);
+  Set_Cursor_Color(576,768,0);
   
-  int ex;
-  for(ex=30;ex<450;ex++)
-  {
-    Vga_Set_Pixel(VGA_0_BASE,40,ex);
-    Vga_Set_Pixel(VGA_0_BASE,80,ex);
-    Vga_Set_Pixel(VGA_0_BASE,120,ex);
-    Vga_Set_Pixel(VGA_0_BASE,160,ex);
-    Vga_Set_Pixel(VGA_0_BASE,200,ex);
-    Vga_Set_Pixel(VGA_0_BASE,240,ex);
-    Vga_Set_Pixel(VGA_0_BASE,280,ex);
-    Vga_Set_Pixel(VGA_0_BASE,320,ex);
-    Vga_Set_Pixel(VGA_0_BASE,360,ex);
-    Vga_Set_Pixel(VGA_0_BASE,400,ex);
-    Vga_Set_Pixel(VGA_0_BASE,440,ex);
-    Vga_Set_Pixel(VGA_0_BASE,480,ex);
-    Vga_Set_Pixel(VGA_0_BASE,520,ex);
-    Vga_Set_Pixel(VGA_0_BASE,560,ex);
-    Vga_Set_Pixel(VGA_0_BASE,600,ex);
-  }
-  
-  int ex2;
-  for(ex2=40;ex2<600;ex2++)
-  {
-    Vga_Set_Pixel(VGA_0_BASE,ex2,30);
-    Vga_Set_Pixel(VGA_0_BASE,ex2,60);
-    Vga_Set_Pixel(VGA_0_BASE,ex2,90);
-    Vga_Set_Pixel(VGA_0_BASE,ex2,120);
-    Vga_Set_Pixel(VGA_0_BASE,ex2,150);
-    Vga_Set_Pixel(VGA_0_BASE,ex2,180);
-    Vga_Set_Pixel(VGA_0_BASE,ex2,210);
-    Vga_Set_Pixel(VGA_0_BASE,ex2,240);
-    Vga_Set_Pixel(VGA_0_BASE,ex2,270);
-    Vga_Set_Pixel(VGA_0_BASE,ex2,300);
-    Vga_Set_Pixel(VGA_0_BASE,ex2,330);
-    Vga_Set_Pixel(VGA_0_BASE,ex2,360);
-    Vga_Set_Pixel(VGA_0_BASE,ex2,390);
-    Vga_Set_Pixel(VGA_0_BASE,ex2,420);
-    Vga_Set_Pixel(VGA_0_BASE,ex2,450);
-  }
+  gomoku_board_display();
+//  int ex;
+//  for(ex=30;ex<450;ex++)
+//  {
+//    Vga_Set_Pixel(VGA_0_BASE,40,ex);
+//    Vga_Set_Pixel(VGA_0_BASE,80,ex);
+//    Vga_Set_Pixel(VGA_0_BASE,120,ex);
+//    Vga_Set_Pixel(VGA_0_BASE,160,ex);
+//    Vga_Set_Pixel(VGA_0_BASE,200,ex);
+//    Vga_Set_Pixel(VGA_0_BASE,240,ex);
+//    Vga_Set_Pixel(VGA_0_BASE,280,ex);
+//    Vga_Set_Pixel(VGA_0_BASE,320,ex);
+//    Vga_Set_Pixel(VGA_0_BASE,360,ex);
+//    Vga_Set_Pixel(VGA_0_BASE,400,ex);
+//    Vga_Set_Pixel(VGA_0_BASE,440,ex);
+//    Vga_Set_Pixel(VGA_0_BASE,480,ex);
+//    Vga_Set_Pixel(VGA_0_BASE,520,ex);
+//    Vga_Set_Pixel(VGA_0_BASE,560,ex);
+//    Vga_Set_Pixel(VGA_0_BASE,600,ex);
+//  }
+//  
+//  int ex2;
+//  for(ex2=40;ex2<600;ex2++)
+//  {
+//    Vga_Set_Pixel(VGA_0_BASE,ex2,30);
+//    Vga_Set_Pixel(VGA_0_BASE,ex2,60);
+//    Vga_Set_Pixel(VGA_0_BASE,ex2,90);
+//    Vga_Set_Pixel(VGA_0_BASE,ex2,120);
+//    Vga_Set_Pixel(VGA_0_BASE,ex2,150);
+//    Vga_Set_Pixel(VGA_0_BASE,ex2,180);
+//    Vga_Set_Pixel(VGA_0_BASE,ex2,210);
+//    Vga_Set_Pixel(VGA_0_BASE,ex2,240);
+//    Vga_Set_Pixel(VGA_0_BASE,ex2,270);
+//    Vga_Set_Pixel(VGA_0_BASE,ex2,300);
+//    Vga_Set_Pixel(VGA_0_BASE,ex2,330);
+//    Vga_Set_Pixel(VGA_0_BASE,ex2,360);
+//    Vga_Set_Pixel(VGA_0_BASE,ex2,390);
+//    Vga_Set_Pixel(VGA_0_BASE,ex2,420);
+//    Vga_Set_Pixel(VGA_0_BASE,ex2,450);
+//  }
   
   LCD_Test();
 
