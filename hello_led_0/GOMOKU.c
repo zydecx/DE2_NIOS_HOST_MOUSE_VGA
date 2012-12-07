@@ -25,9 +25,23 @@ void gomoku_board_display()
    }
 }
 //-------------------------------------------------------------------------
-//void gomoku_game_start()
-//{
-//    clean_screen();
-//    gomoku_board_display();
-//}
+void reset_piece_record_array()
+{
+    int ex, ey, ez;
+    for (ex = 0; ex < BOARD_CELL_NO; ++ex)
+        for (ey = 0; ey < BOARD_CELL_NO; ++ey)
+        {
+            Piece_Record[ex][ey] = 0;
+            for (ez = 0; ez < 8; ++ez)
+                Piece_Analysis_Record[ex][ey][ez] = 0;
+        }
+}
+//-------------------------------------------------------------------------
+void gomoku_game_start()
+{
+    Set_Pixel_On_Color(1023,1023,1023);
+    reset_piece_record_array();
+    clean_screen();
+    gomoku_board_display();
+}
 //-------------------------------------------------------------------------

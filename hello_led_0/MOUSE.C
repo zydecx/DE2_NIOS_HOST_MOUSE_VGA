@@ -6,8 +6,9 @@
 #include "sys/alt_irq.h"
 #include "VGA.h"
 #include "GOMOKU.h"
+#include <math.h>
 
-int Board_Piece_Record[BOARD_CELL_NO][BOARD_CELL_NO]={0};
+//int Piece_Record[BOARD_CELL_NO][BOARD_CELL_NO]={0};
 
 int maxmin(int no, int max, int min)
 {
@@ -42,6 +43,8 @@ void play_mouse(unsigned int addr)
  unsigned int tog=0;
  
  unsigned int flag = 0; //Black Piece(1=1-2*flag) as default
+ unsigned int rclick_no = 0;    //no. of right click; Reset when left click
+ unsigned int win_state = 0;    //change to 1 when player wins a game, so that no more pieces are allowed
  
  freq=0x00;
  erase_all();
@@ -123,14 +126,17 @@ void play_mouse(unsigned int addr)
         pYc = 0;
         pYcc = BOARD_TOP_EDGE-pY;
     }
-    if ((pXcc*pXcc+pYcc*pYcc)>BOARD_PIECE_OFFSET*BOARD_PIECE_OFFSET)    continue;
-    if(pXc < 0 || pYc < 0 || pXc >= BOARD_CELL_NO || pYc >= BOARD_CELL_NO) continue;
-    if(Board_Piece_Record[pYc][pXc] != 0)  continue;
     
   /*if(B==1)
   Vga_Set_Pixel(VGA_0_BASE,pX,pY);*/
   if(B==1){
-    Board_Piece_Record[pYc][pXc] = 1-2*flag;
+    rclick_no = 0;  //Reset NO of right-click
+    
+    if (win_state == 1) continue;   //in win-state, no more pieces are allowed
+    if ((pXcc*pXcc+pYcc*pYcc)>BOARD_PIECE_OFFSET*BOARD_PIECE_OFFSET)    continue;
+    if (pXc < 0 || pYc < 0 || pXc >= BOARD_CELL_NO || pYc >= BOARD_CELL_NO) continue;
+    if (Piece_Record[pYc][pXc] != 0)  continue;
+    
     if (flag == 1)
     {
         for (ii=-BOARD_PIECE_OFFSET; ii<BOARD_PIECE_OFFSET+1; ++ii)
@@ -159,83 +165,173 @@ void play_mouse(unsigned int addr)
         flag = 1;   //Set back to White Piece
     }
     
-    /*
-  Vga_Set_Pixel(VGA_0_BASE,pX-6,(pY-1));
-  Vga_Set_Pixel(VGA_0_BASE,pX-6,pY);
-  Vga_Set_Pixel(VGA_0_BASE,pX-6,(pY+1));
-  Vga_Set_Pixel(VGA_0_BASE,pX-5,(pY-1));
-  Vga_Set_Pixel(VGA_0_BASE,pX-5,pY);
-  Vga_Set_Pixel(VGA_0_BASE,pX-5,(pY+1));
-  Vga_Set_Pixel(VGA_0_BASE,pX+6,(pY-1));
-  Vga_Set_Pixel(VGA_0_BASE,pX+6,pY);
-  Vga_Set_Pixel(VGA_0_BASE,pX+6,(pY+1));
-  Vga_Set_Pixel(VGA_0_BASE,pX+5,(pY-1));
-  Vga_Set_Pixel(VGA_0_BASE,pX+5,pY);
-  Vga_Set_Pixel(VGA_0_BASE,pX+5,(pY+1));
-  Vga_Set_Pixel(VGA_0_BASE,pX-4,(pY-2));
-  Vga_Set_Pixel(VGA_0_BASE,pX-4,(pY-1));
-  Vga_Set_Pixel(VGA_0_BASE,pX-4,pY);
-  Vga_Set_Pixel(VGA_0_BASE,pX-4,(pY+1));
-  Vga_Set_Pixel(VGA_0_BASE,pX-4,(pY+2));
-  Vga_Set_Pixel(VGA_0_BASE,pX+4,(pY-2));
-  Vga_Set_Pixel(VGA_0_BASE,pX+4,(pY-1));
-  Vga_Set_Pixel(VGA_0_BASE,pX+4,pY);
-  Vga_Set_Pixel(VGA_0_BASE,pX+4,(pY+1));
-  Vga_Set_Pixel(VGA_0_BASE,pX+4,(pY+2));
-  Vga_Set_Pixel(VGA_0_BASE,pX-3,(pY-2));
-  Vga_Set_Pixel(VGA_0_BASE,pX-3,(pY-1));
-  Vga_Set_Pixel(VGA_0_BASE,pX-3,pY);
-  Vga_Set_Pixel(VGA_0_BASE,pX-3,(pY+1));
-  Vga_Set_Pixel(VGA_0_BASE,pX+3,(pY+2));
-  Vga_Set_Pixel(VGA_0_BASE,pX+3,(pY-2));
-  Vga_Set_Pixel(VGA_0_BASE,pX+3,(pY-1));
-  Vga_Set_Pixel(VGA_0_BASE,pX+3,pY);
-  Vga_Set_Pixel(VGA_0_BASE,pX+3,(pY+1));
-  Vga_Set_Pixel(VGA_0_BASE,pX+3,(pY+2));
-  Vga_Set_Pixel(VGA_0_BASE,pX-2,(pY-3));
-  Vga_Set_Pixel(VGA_0_BASE,pX-2,(pY-2));
-  Vga_Set_Pixel(VGA_0_BASE,pX-2,(pY-1));
-  Vga_Set_Pixel(VGA_0_BASE,pX-2,pY);
-  Vga_Set_Pixel(VGA_0_BASE,pX-2,(pY+1));
-  Vga_Set_Pixel(VGA_0_BASE,pX-2,(pY+2));
-  Vga_Set_Pixel(VGA_0_BASE,pX+2,(pY+3));
-  Vga_Set_Pixel(VGA_0_BASE,pX+2,(pY-3));
-  Vga_Set_Pixel(VGA_0_BASE,pX+2,(pY-2));
-  Vga_Set_Pixel(VGA_0_BASE,pX+2,(pY-1));
-  Vga_Set_Pixel(VGA_0_BASE,pX+2,pY);
-  Vga_Set_Pixel(VGA_0_BASE,pX+2,(pY+1));
-  Vga_Set_Pixel(VGA_0_BASE,pX+2,(pY+2));
-  Vga_Set_Pixel(VGA_0_BASE,pX+2,(pY+3));
-  Vga_Set_Pixel(VGA_0_BASE,pX-1,(pY-4));
-  Vga_Set_Pixel(VGA_0_BASE,pX-1,(pY-3));
-  Vga_Set_Pixel(VGA_0_BASE,pX-1,(pY-2));
-  Vga_Set_Pixel(VGA_0_BASE,pX-1,(pY-1));
-  Vga_Set_Pixel(VGA_0_BASE,pX-1,pY);
-  Vga_Set_Pixel(VGA_0_BASE,pX-1,(pY+1));
-  Vga_Set_Pixel(VGA_0_BASE,pX-1,(pY+2));
-  Vga_Set_Pixel(VGA_0_BASE,pX-1,(pY+3));
-  Vga_Set_Pixel(VGA_0_BASE,pX-1,(pY+4));
-  Vga_Set_Pixel(VGA_0_BASE,pX,(pY-4));
-  Vga_Set_Pixel(VGA_0_BASE,pX,(pY-3));
-  Vga_Set_Pixel(VGA_0_BASE,pX,(pY-2));
-  Vga_Set_Pixel(VGA_0_BASE,pX,(pY-1));
-  Vga_Set_Pixel(VGA_0_BASE,pX,pY);
-  Vga_Set_Pixel(VGA_0_BASE,pX,(pY+1));
-  Vga_Set_Pixel(VGA_0_BASE,pX,(pY+2));
-  Vga_Set_Pixel(VGA_0_BASE,pX,(pY+3));
-  Vga_Set_Pixel(VGA_0_BASE,pX,(pY+4));
-  Vga_Set_Pixel(VGA_0_BASE,pX+1,(pY-4));
-  Vga_Set_Pixel(VGA_0_BASE,pX+1,(pY-3));
-  Vga_Set_Pixel(VGA_0_BASE,pX+1,(pY-2));
-  Vga_Set_Pixel(VGA_0_BASE,pX+1,(pY-1));
-  Vga_Set_Pixel(VGA_0_BASE,pX+1,pY);
-  Vga_Set_Pixel(VGA_0_BASE,pX+1,(pY+1));
-  Vga_Set_Pixel(VGA_0_BASE,pX+1,(pY+2));
-  Vga_Set_Pixel(VGA_0_BASE,pX+1,(pY+3));
-  Vga_Set_Pixel(VGA_0_BASE,pX+1,(pY+4));*/
+    //Start update the piece on board
+    Piece_Record[pYc][pXc] = 1-2*flag;
+    
+    ///////////////////////////////////////////////////////////////////
+    //         Start update the state of Horzontal direction         //
+    //////////////////////////////////////////////////////////////////
+    int Series_Start_Point;
+    int Series_End_Point;
+    //left side
+    if (pXc>0 && Piece_Record[pYc][pXc]*Piece_Record[pYc][pXc-1] > 0)
+    {
+        Series_Start_Point = pXc - abs(Piece_Analysis_Record[pYc][pXc-1][0]);
+        Piece_Analysis_Record[pYc][pXc][0] = (1-2*flag) + Piece_Analysis_Record[pYc][pXc-1][0];  //how many, 1-black, -1-white
+        Piece_Analysis_Record[pYc][pXc][1] = 1 + Piece_Analysis_Record[pYc][pXc-1][1]; //第几个
+    }
+    else
+    {
+        Series_Start_Point = pXc;
+        Piece_Analysis_Record[pYc][pXc][0] = 1-2*flag;  //how many, 1-black, -1-white
+    }
+    //right side
+    if (pXc<BOARD_CELL_NO-1 && Piece_Record[pYc][pXc]*Piece_Record[pYc][pXc+1] > 0)
+    {
+        Series_End_Point = pXc + abs(Piece_Analysis_Record[pYc][pXc+1][0]);
+        Piece_Analysis_Record[pYc][pXc][0] += Piece_Analysis_Record[pYc][pXc+1][0];  //how many, 1-black, -1-white
+    }
+    else
+    {
+        Series_End_Point = pXc;
+    }
+    //decide if the player wins
+    if (abs(Piece_Analysis_Record[pYc][pXc][0]) >= 5)
+    {
+        win_state = 1;
+        Set_Pixel_On_Color(1023,512,0);
+    }
+    //update the horizontal state
+    for (ii = Series_Start_Point; ii <= Series_End_Point; ++ii)
+    {
+        Piece_Analysis_Record[pYc][ii][0] = Piece_Analysis_Record[pYc][pXc][0];
+        Piece_Analysis_Record[pYc][ii][1] = ii - Series_Start_Point + 1;
+    }
+    ///////////////////////////////////////////////////////////////////
+    //         Start update the state of Verticle direction          //
+    ///////////////////////////////////////////////////////////////////
+//    int Series_Start_Point;
+//    int Series_End_Point;
+    //top side
+    if (pYc>0 && Piece_Record[pYc][pXc]*Piece_Record[pYc-1][pXc] > 0)
+    {
+        Series_Start_Point = pYc - abs(Piece_Analysis_Record[pYc-1][pXc][2]);
+        Piece_Analysis_Record[pYc][pXc][2] = (1-2*flag) + Piece_Analysis_Record[pYc-1][pXc][2];  //how many, 1-black, -1-white
+        Piece_Analysis_Record[pYc][pXc][3] = 1 + Piece_Analysis_Record[pYc-1][pXc][3]; //第几个
+    }
+    else
+    {
+        Series_Start_Point = pYc;
+        Piece_Analysis_Record[pYc][pXc][2] = 1-2*flag;  //how many, 1-black, -1-white
+    }
+    //bottom side
+    if (pYc<BOARD_CELL_NO-1 && Piece_Record[pYc][pXc]*Piece_Record[pYc+1][pXc] > 0)
+    {
+        Series_End_Point = pYc + abs(Piece_Analysis_Record[pYc+1][pXc][2]);
+        Piece_Analysis_Record[pYc][pXc][2] += Piece_Analysis_Record[pYc+1][pXc][2];  //how many, 1-black, -1-white
+    }
+    else
+    {
+        Series_End_Point = pYc;
+    }
+    //decide if the player wins
+    if (abs(Piece_Analysis_Record[pYc][pXc][2]) >= 5)
+    {
+        win_state = 1;
+        Set_Pixel_On_Color(1023,512,0);
+    }
+    //update the vertical state
+    for (jj = Series_Start_Point; jj <= Series_End_Point; ++jj)
+    {
+        Piece_Analysis_Record[jj][pXc][2] = Piece_Analysis_Record[pYc][pXc][2];
+        Piece_Analysis_Record[jj][pXc][3] = jj - Series_Start_Point + 1;
+    }
+    ///////////////////////////////////////////////////////////////////
+    //         Start update the state of BL-to-TR direction          //
+    ///////////////////////////////////////////////////////////////////
+    int Series_Start_Point2; //verticle start cordinate
+    int Series_Stend_Points; //number of point-series
+    //bottom-left side
+    if (pXc>0 && pYc<BOARD_CELL_NO-1 && Piece_Record[pYc][pXc]*Piece_Record[pYc+1][pXc-1] > 0)
+    {
+        Series_Start_Point = pXc - abs(Piece_Analysis_Record[pYc+1][pXc-1][4]);
+        Series_Start_Point2 = pYc + abs(Piece_Analysis_Record[pYc+1][pXc-1][4]);
+        Piece_Analysis_Record[pYc][pXc][4] = (1-2*flag) + Piece_Analysis_Record[pYc+1][pXc-1][4];  //how many, 1-black, -1-white
+        Piece_Analysis_Record[pYc][pXc][5] = 1 + Piece_Analysis_Record[pYc+1][pXc-1][5]; //第几个
+    }
+    else
+    {
+        Series_Start_Point = pXc;
+        Series_Start_Point2 = pYc;
+        Piece_Analysis_Record[pYc][pXc][4] = 1-2*flag;  //how many, 1-black, -1-white
+    }
+    //top-right side
+    if (pXc<BOARD_CELL_NO-1 && pYc>0 && Piece_Record[pYc][pXc]*Piece_Record[pYc-1][pXc+1] > 0)
+    {
+        Piece_Analysis_Record[pYc][pXc][4] += Piece_Analysis_Record[pYc-1][pXc+1][4];  //how many, 1-black, -1-white
+    }
+    Series_Stend_Points = abs(Piece_Analysis_Record[pYc][pXc][4]);
+    //decide if the player wins
+    if ( Series_Stend_Points >= 5)
+    {
+        win_state = 1;
+        Set_Pixel_On_Color(1023,512,0);
+    }
+    //update the BL-to-TR state
+    for (ii = 0; ii < Series_Stend_Points; ++ii)
+    {
+        Piece_Analysis_Record[Series_Start_Point2-ii][Series_Start_Point+ii][4] = Piece_Analysis_Record[pYc][pXc][4];
+        Piece_Analysis_Record[Series_Start_Point2-ii][Series_Start_Point+ii][5] = ii + 1;
+    }
+    ///////////////////////////////////////////////////////////////////
+    //         Start update the state of TL-to-BR direction          //
+    ///////////////////////////////////////////////////////////////////
+//    int Series_Start_Point2; //verticle start cordinate
+//    int Series_Stend_Points; //number of point-series
+    //top-left side
+    if (pXc>0 && pYc>0 && Piece_Record[pYc][pXc]*Piece_Record[pYc-1][pXc-1] > 0)
+    {
+        Series_Start_Point = pXc - abs(Piece_Analysis_Record[pYc-1][pXc-1][6]);
+        Series_Start_Point2 = pYc - abs(Piece_Analysis_Record[pYc-1][pXc-1][6]);
+        Piece_Analysis_Record[pYc][pXc][6] = (1-2*flag) + Piece_Analysis_Record[pYc-1][pXc-1][6];  //how many, 1-black, -1-white
+        Piece_Analysis_Record[pYc][pXc][7] = 1 + Piece_Analysis_Record[pYc-1][pXc-1][7]; //第几个
+    }
+    else
+    {
+        Series_Start_Point = pXc;
+        Series_Start_Point2 = pYc;
+        Piece_Analysis_Record[pYc][pXc][6] = 1-2*flag;  //how many, 1-black, -1-white
+    }
+    //bottom-right side
+    if (pXc<BOARD_CELL_NO-1 && pYc<BOARD_CELL_NO-1 && Piece_Record[pYc][pXc]*Piece_Record[pYc+1][pXc+1] > 0)
+    {
+        Piece_Analysis_Record[pYc][pXc][6] += Piece_Analysis_Record[pYc+1][pXc+1][6];  //how many, 1-black, -1-white
+    }
+    Series_Stend_Points = abs(Piece_Analysis_Record[pYc][pXc][6]);
+    //decide if the player wins
+    if ( Series_Stend_Points >= 5)
+    {
+        win_state = 1;
+        Set_Pixel_On_Color(1023,512,0);
+    }
+    //update the TL-to-BR state
+    for (ii = 0; ii < Series_Stend_Points; ++ii)
+    {
+        Piece_Analysis_Record[Series_Start_Point2+ii][Series_Start_Point+ii][6] = Piece_Analysis_Record[pYc][pXc][6];
+        Piece_Analysis_Record[Series_Start_Point2+ii][Series_Start_Point+ii][7] = ii + 1;
+    }   
   }
   else if(B==2)
-    Vga_Clr_Pixel(VGA_0_BASE,pX,pY);
+  {
+//    Vga_Clr_Pixel(VGA_0_BASE,pX,pY);
+    rclick_no++;
+    if (rclick_no > RCLICK_RESTART_THRESHOLD)
+    {
+        win_state = 0;
+        flag = 0;
+        gomoku_game_start();
+    }
+  }
    
   }while((r16(HcRhP2) & 0x01) ==0x01);
  printf("\nMouse Not Detected");
