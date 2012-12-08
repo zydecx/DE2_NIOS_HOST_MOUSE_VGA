@@ -1,7 +1,7 @@
 #include "system.h"
 #include "basic_io.h"
 #include "VGA.h"
-#include "GOMOKU.h"
+#include "GoBang.h"
 
 //-------------------------------------------------------------------------
 void clean_screen()
@@ -12,7 +12,7 @@ void clean_screen()
             Vga_Clr_Pixel(VGA_0_BASE, ex, ey);
 }
 //-------------------------------------------------------------------------
-void gomoku_board_display()
+void gobang_board_display()
 {
    int ex, ey;
    for (ex = 1; ex <= BOARD_CELL_NO; ++ex)
@@ -37,11 +37,16 @@ void reset_piece_record_array()
         }
 }
 //-------------------------------------------------------------------------
-void gomoku_game_start()
+void gobang_game_start()
 {
     Set_Pixel_On_Color(1023,1023,1023);
     reset_piece_record_array();
     clean_screen();
-    gomoku_board_display();
+    gobang_board_display();
+}
+//-------------------------------------------------------------------------
+void gobang_win_display()
+{
+    Set_Pixel_On_Color(1023,512,0);
 }
 //-------------------------------------------------------------------------

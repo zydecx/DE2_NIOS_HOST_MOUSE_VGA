@@ -28,7 +28,7 @@
 #include "buf_man.c"
 #include "reg.c"
 #include "port.c"
-#include "GOMOKU.h"
+#include "GoBang.h"
 
 unsigned int		hc_data;
 unsigned int		hc_com;
@@ -53,8 +53,8 @@ int main(void)
   
 //  reset_piece_record_array();
 //  clean_screen();
-//  gomoku_board_display();
-  gomoku_game_start();
+//  gobang_board_display();
+  gobang_game_start();
 //  int ex;
 //  for(ex=30;ex<450;ex++)
 //  {

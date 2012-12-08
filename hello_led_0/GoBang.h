@@ -1,5 +1,5 @@
-#ifndef __GOMOKU_H__
-#define __GOMOKU_H__
+#ifndef __GOBANG_H__
+#define __GOBANG_H__
 
 #define BOARD_LEFT_EDGE     40
 #define BOARD_HOR_MARGIN    40
@@ -20,7 +20,8 @@ int Piece_Analysis_Record[BOARD_CELL_NO][BOARD_CELL_NO][8];
    
 void reset_piece_record_array();
 void clean_screen();            //clean all points on screen
-void gomoku_board_display();    //Display gomoku board on screen
-void gomoku_game_start();       //start a game
+void gobang_board_display();    //Display gobang board on screen
+void gobang_game_start();       //start a game
+void gobang_win_display();      //change screen color when win
 
 #endif

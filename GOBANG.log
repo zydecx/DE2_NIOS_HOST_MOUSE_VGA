@@ -1,0 +1,14 @@
+#Created in 2012/12/08 19:38(UTC +08)
+#Four commits have made and v1.0 published
+#This file records the update history of GoBang Game since now
+
+-2012-12-08!
+--1\Rename the game from GOMOKU to GoBang
+--2\Improve action to be taken after win, i.g. package color-change function, add "continue"
+--3\Change is_white_mode at last, instead of right after dropping a piece
+--4\Add hand-cut mode to the game
+--5\Question:what if the example below, hand-cut of three or not a hand-cut with 3-4:
+----* ***
+----    *
+----    *
+-2012-12-08!
