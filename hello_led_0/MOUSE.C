@@ -47,6 +47,7 @@ void play_mouse(unsigned int addr)
  unsigned int win_state = 0;    //change to 1 when player wins a game, so that no more pieces are allowed
  unsigned int hand_cut_three = 0;   //record number of hand cut of three when is_white_mode==0(Black)
  unsigned int hand_cut_four = 0;    //record number of hand cut of four when is_white_mode==0(Black)
+ unsigned int hand_cut_six = 0;     //record number of hand cut of more than five when is_white_mode==0(Black)
  
  freq=0x00;
  erase_all();
@@ -135,6 +136,7 @@ void play_mouse(unsigned int addr)
     rclick_no = 0;  //Reset NO of right-click
     hand_cut_three = 0;
     hand_cut_four = 0;
+    hand_cut_six = 0;
     
     if (win_state == 1) continue;   //in win-state, no more pieces are allowed
     if ((pXcc*pXcc+pYcc*pYcc)>BOARD_PIECE_OFFSET*BOARD_PIECE_OFFSET)    continue;
@@ -203,7 +205,7 @@ void play_mouse(unsigned int addr)
     if (abs(Piece_Analysis_Record[pYc][pXc][0]) == 5)
     {
         win_state = 1;
-        gobang_win_display();
+        gobang_win_display(is_white_mode);
         continue;
     }
     //update the horizontal state
@@ -243,7 +245,7 @@ void play_mouse(unsigned int addr)
     if (abs(Piece_Analysis_Record[pYc][pXc][2]) == 5)
     {
         win_state = 1;
-        gobang_win_display();
+        gobang_win_display(is_white_mode);
         continue;
     }
     //update the vertical state
@@ -281,7 +283,7 @@ void play_mouse(unsigned int addr)
     if (Series_Stend_Points == 5)
     {
         win_state = 1;
-        gobang_win_display();
+        gobang_win_display(is_white_mode);
         continue;
     }
     //update the BL-to-TR state
@@ -319,7 +321,7 @@ void play_mouse(unsigned int addr)
     if (Series_Stend_Points == 5)
     {
         win_state = 1;
-        gobang_win_display();
+        gobang_win_display(is_white_mode);
         continue;
     }
     //update the TL-to-BR state
@@ -367,6 +369,9 @@ void play_mouse(unsigned int addr)
         piece_next = pXc + Piece_Analysis_Record[pYc][pXc][0] - Piece_Analysis_Record[pYc][pXc][1] + 2;
         if (piece_next<BOARD_CELL_NO && Piece_Analysis_Record[pYc][pXc][0] == 2 && Piece_Analysis_Record[pYc][piece_next][0] == 2 )
             hand_cut_four++;
+        //6-"***...***"
+        if (Piece_Analysis_Record[pYc][pXc][0] > 5)
+            hand_cut_six++;
         //////////////////////////////////////////////////////////////////
         //         Start check hand-cut of verticle direction           //
         ///////////////////////////////////////////////////////////////////
@@ -397,6 +402,9 @@ void play_mouse(unsigned int addr)
         piece_next = pYc + Piece_Analysis_Record[pYc][pXc][2] - Piece_Analysis_Record[pYc][pXc][3] + 2;
         if (piece_next<BOARD_CELL_NO && Piece_Analysis_Record[pYc][pXc][2] == 2 && Piece_Analysis_Record[piece_next][pXc][2] == 2 )
             hand_cut_four++;
+        //6-"***...***"
+        if (Piece_Analysis_Record[pYc][pXc][2] > 5)
+            hand_cut_six++;
         ///////////////////////////////////////////////////////////////////
         //          Start check hand-cut of BL-to-TR direction           //
         ///////////////////////////////////////////////////////////////////
@@ -433,6 +441,9 @@ void play_mouse(unsigned int addr)
         piece_next2 = pYc - Piece_Analysis_Record[pYc][pXc][5] - 1;
         if (piece_next<BOARD_CELL_NO && piece_next2>=0 && Piece_Analysis_Record[pYc][pXc][4]==2 && Piece_Analysis_Record[piece_next2][piece_next][4] == 2 )
             hand_cut_four++;
+        //6-"***...***"
+        if (Piece_Analysis_Record[pYc][pXc][4] > 5)
+            hand_cut_six++;
         ///////////////////////////////////////////////////////////////////
         //          Start check hand-cut of TL-to-BR direction           //
         ///////////////////////////////////////////////////////////////////
@@ -469,11 +480,14 @@ void play_mouse(unsigned int addr)
         piece_next2 = pYc + Piece_Analysis_Record[pYc][pXc][6] - Piece_Analysis_Record[pYc][pXc][7] + 2;
         if (piece_next<BOARD_CELL_NO && piece_next2<BOARD_CELL_NO && Piece_Analysis_Record[pYc][pXc][6]==2 && Piece_Analysis_Record[piece_next2][piece_next][6] == 2 )
             hand_cut_four++;
+        //6-"***...***"
+        if (Piece_Analysis_Record[pYc][pXc][6] > 5)
+            hand_cut_six++;
             
-        if (hand_cut_three >= 2 || hand_cut_four >= 2)
+        if (hand_cut_three >= 2 || hand_cut_four >= 2 || hand_cut_six >= 1)
         {
             win_state = 1;
-            gobang_win_display();
+            gobang_win_display(1 - is_white_mode);
             continue;
         }
     }

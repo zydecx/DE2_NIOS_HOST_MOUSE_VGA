@@ -45,8 +45,13 @@ void gobang_game_start()
     gobang_board_display();
 }
 //-------------------------------------------------------------------------
-void gobang_win_display()
+void gobang_win_display(unsigned int isWhite)
 {
-    Set_Pixel_On_Color(1023,512,0);
+    if (isWhite == 1)
+        Set_Pixel_On_Color(0,1013,408);    //Light Blue
+//        Set_Pixel_On_Color(612,816,816);    //Light Blue
+    else
+        Set_Pixel_On_Color(1023,408,0);    //Orange
+//        Set_Pixel_On_Color(1023,612,408);    //Orange
 }
 //-------------------------------------------------------------------------

@@ -22,6 +22,6 @@ void reset_piece_record_array();
 void clean_screen();            //clean all points on screen
 void gobang_board_display();    //Display gobang board on screen
 void gobang_game_start();       //start a game
-void gobang_win_display();      //change screen color when win
+void gobang_win_display(unsigned int);      //change screen color when win
 
 #endif

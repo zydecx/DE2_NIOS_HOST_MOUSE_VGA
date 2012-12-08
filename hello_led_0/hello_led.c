@@ -48,7 +48,7 @@ int main(void)
   
   Vga_Write_Ctrl(VGA_0_BASE, vga_ctrl_set.Value);
   Set_Pixel_On_Color(1023,1023,1023);
-  Set_Pixel_Off_Color(0,0,0);
+  Set_Pixel_Off_Color(256,256,256);
   Set_Cursor_Color(576,768,0);
   
 //  reset_piece_record_array();
