@@ -145,27 +145,27 @@ void play_mouse(unsigned int addr)
     
     if (is_white_mode == 1)
     {
-        for (ii=-BOARD_PIECE_OFFSET; ii<BOARD_PIECE_OFFSET+1; ++ii)
+        for (ii=-BOARD_PIECE_RADIUS; ii<(BOARD_PIECE_RADIUS+1); ++ii)
         {
-            for (jj=-BOARD_PIECE_RADIUS; jj<BOARD_PIECE_RADIUS+1; ++jj)
+            for (jj=-BOARD_PIECE_RADIUS; jj<(BOARD_PIECE_RADIUS+1); ++jj)
             {   
-                if (ii*ii+jj*jj>BOARD_PIECE_RADIUS*BOARD_PIECE_RADIUS)    continue;
-                Vga_Set_Pixel(VGA_0_BASE, pXc*BOARD_HOR_MARGIN+BOARD_LEFT_EDGE+ii, (pYc*BOARD_VER_MARGIN+BOARD_TOP_EDGE+jj));
+                if ((ii*ii+jj*jj)>(BOARD_PIECE_RADIUS*BOARD_PIECE_RADIUS+1))    continue;
+                Vga_Set_Pixel(VGA_0_BASE, (pXc*BOARD_HOR_MARGIN+BOARD_LEFT_EDGE+ii), (pYc*BOARD_VER_MARGIN+BOARD_TOP_EDGE+jj));
             }
         }
 //        is_white_mode = 0;   //Set back to Black Piece
     }
     else
     {
-        for (ii=-BOARD_PIECE_RADIUS; ii<BOARD_PIECE_RADIUS+1; ++ii)
+        for (ii=-BOARD_PIECE_RADIUS; ii<(BOARD_PIECE_RADIUS+1); ++ii)
         {
-            for (jj=-BOARD_PIECE_RADIUS; jj<BOARD_PIECE_RADIUS+1; ++jj)
+            for (jj=-BOARD_PIECE_RADIUS; jj<(BOARD_PIECE_RADIUS+1); ++jj)
             {   
-                if(ii*ii+jj*jj>BOARD_PIECE_RADIUS*BOARD_PIECE_RADIUS)    continue;
-                if(ii*ii+jj*jj>BOARD_PIECE_RADIUS*BOARD_PIECE_RADIUS*25/36)
-                    Vga_Set_Pixel(VGA_0_BASE,pXc*BOARD_HOR_MARGIN+BOARD_LEFT_EDGE+ii,(pYc*BOARD_VER_MARGIN+BOARD_TOP_EDGE+jj));
+                if((ii*ii+jj*jj)>(BOARD_PIECE_RADIUS*BOARD_PIECE_RADIUS+1))    continue;
+                if((ii*ii+jj*jj)>(BOARD_PIECE_RADIUS*BOARD_PIECE_RADIUS*25/36+1))
+                    Vga_Set_Pixel(VGA_0_BASE,(pXc*BOARD_HOR_MARGIN+BOARD_LEFT_EDGE+ii),(pYc*BOARD_VER_MARGIN+BOARD_TOP_EDGE+jj));
                 else
-                    Vga_Clr_Pixel(VGA_0_BASE,pXc*BOARD_HOR_MARGIN+BOARD_LEFT_EDGE+ii,(pYc*BOARD_VER_MARGIN+BOARD_TOP_EDGE+jj));
+                    Vga_Clr_Pixel(VGA_0_BASE,(pXc*BOARD_HOR_MARGIN+BOARD_LEFT_EDGE+ii),(pYc*BOARD_VER_MARGIN+BOARD_TOP_EDGE+jj));
             }
         }
 //        is_white_mode = 1;   //Set back to White Piece
