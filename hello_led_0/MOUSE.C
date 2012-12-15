@@ -1,4 +1,3 @@
-
 #include "system.h"
 #include "basic_io.h"
 #include "LCD.h"
@@ -119,12 +118,12 @@ void play_mouse(unsigned int addr)
         pYc++;
         pYcc = BOARD_VER_MARGIN - pYcc;
     }
-    if (pX<BOARD_LEFT_EDGE && BOARD_LEFT_EDGE-pX<BOARD_PIECE_OFFSET)
+    if (pX<BOARD_LEFT_EDGE && (BOARD_LEFT_EDGE-pX)<BOARD_PIECE_OFFSET)
     {
         pXc = 0;
         pXcc = BOARD_LEFT_EDGE-pX;
     }
-    if (pY<BOARD_TOP_EDGE && BOARD_TOP_EDGE-pY<BOARD_PIECE_OFFSET)
+    if (pY<BOARD_TOP_EDGE && (BOARD_TOP_EDGE-pY)<BOARD_PIECE_OFFSET)
     {
         pYc = 0;
         pYcc = BOARD_TOP_EDGE-pY;
@@ -145,29 +144,32 @@ void play_mouse(unsigned int addr)
     
     if (is_white_mode == 1)
     {
-        for (ii=-BOARD_PIECE_RADIUS; ii<(BOARD_PIECE_RADIUS+1); ++ii)
-        {
-            for (jj=-BOARD_PIECE_RADIUS; jj<(BOARD_PIECE_RADIUS+1); ++jj)
-            {   
-                if ((ii*ii+jj*jj)>(BOARD_PIECE_RADIUS*BOARD_PIECE_RADIUS+1))    continue;
-                Vga_Set_Pixel(VGA_0_BASE, (pXc*BOARD_HOR_MARGIN+BOARD_LEFT_EDGE+ii), (pYc*BOARD_VER_MARGIN+BOARD_TOP_EDGE+jj));
-            }
-        }
+        gobang_draw_circle(BOARD_PIECE_RADIUS, (pXc*BOARD_HOR_MARGIN+BOARD_LEFT_EDGE), (pYc*BOARD_VER_MARGIN+BOARD_TOP_EDGE));
+//        for (ii=-BOARD_PIECE_RADIUS; ii<(BOARD_PIECE_RADIUS+1); ++ii)
+//        {
+//            for (jj=-BOARD_PIECE_RADIUS; jj<(BOARD_PIECE_RADIUS+1); ++jj)
+//            {   
+//                if ((ii*ii+jj*jj)>(BOARD_PIECE_RADIUS*BOARD_PIECE_RADIUS+1))    continue;
+//                Vga_Set_Pixel(VGA_0_BASE, (pXc*BOARD_HOR_MARGIN+BOARD_LEFT_EDGE+ii), (pYc*BOARD_VER_MARGIN+BOARD_TOP_EDGE+jj));
+//            }
+//        }
 //        is_white_mode = 0;   //Set back to Black Piece
     }
     else
     {
-        for (ii=-BOARD_PIECE_RADIUS; ii<(BOARD_PIECE_RADIUS+1); ++ii)
-        {
-            for (jj=-BOARD_PIECE_RADIUS; jj<(BOARD_PIECE_RADIUS+1); ++jj)
-            {   
-                if((ii*ii+jj*jj)>(BOARD_PIECE_RADIUS*BOARD_PIECE_RADIUS+1))    continue;
-                if((ii*ii+jj*jj)>(BOARD_PIECE_RADIUS*BOARD_PIECE_RADIUS*25/36+1))
-                    Vga_Set_Pixel(VGA_0_BASE,(pXc*BOARD_HOR_MARGIN+BOARD_LEFT_EDGE+ii),(pYc*BOARD_VER_MARGIN+BOARD_TOP_EDGE+jj));
-                else
-                    Vga_Clr_Pixel(VGA_0_BASE,(pXc*BOARD_HOR_MARGIN+BOARD_LEFT_EDGE+ii),(pYc*BOARD_VER_MARGIN+BOARD_TOP_EDGE+jj));
-            }
-        }
+        gobang_draw_circle(BOARD_PIECE_RADIUS, (pXc*BOARD_HOR_MARGIN+BOARD_LEFT_EDGE), (pYc*BOARD_VER_MARGIN+BOARD_TOP_EDGE));
+        gobang_clear_circle(BOARD_PIECE_RADIUS*5/6, (pXc*BOARD_HOR_MARGIN+BOARD_LEFT_EDGE), (pYc*BOARD_VER_MARGIN+BOARD_TOP_EDGE));
+//        for (ii=-BOARD_PIECE_RADIUS; ii<(BOARD_PIECE_RADIUS+1); ++ii)
+//        {
+//            for (jj=-BOARD_PIECE_RADIUS; jj<(BOARD_PIECE_RADIUS+1); ++jj)
+//            {   
+//                if((ii*ii+jj*jj)>(BOARD_PIECE_RADIUS*BOARD_PIECE_RADIUS+1))    continue;
+//                if((ii*ii+jj*jj)>(BOARD_PIECE_RADIUS*BOARD_PIECE_RADIUS*25/36+1))
+//                    Vga_Set_Pixel(VGA_0_BASE,(pXc*BOARD_HOR_MARGIN+BOARD_LEFT_EDGE+ii),(pYc*BOARD_VER_MARGIN+BOARD_TOP_EDGE+jj));
+//                else
+//                    Vga_Clr_Pixel(VGA_0_BASE,(pXc*BOARD_HOR_MARGIN+BOARD_LEFT_EDGE+ii),(pYc*BOARD_VER_MARGIN+BOARD_TOP_EDGE+jj));
+//            }
+//        }
 //        is_white_mode = 1;   //Set back to White Piece
     }
     
@@ -335,161 +337,167 @@ void play_mouse(unsigned int addr)
     ///////////////////////////////////////////////////////////////////
     //          Start check if the hand-cut problem exists           //
     /////////////////////////////////////////////////////////////////// 
-    if (is_white_mode == 0)
+//    if (is_white_mode == 0)
+//    {
+//        int piece_next = 0;
+//        int piece_next2 = 0;    //for the other cordinate of lean direction
+//        ///////////////////////////////////////////////////////////////////
+//        //         Start check hand-cut of horizontal direction          //
+//        ///////////////////////////////////////////////////////////////////
+//        //1-"***"
+//        if (Piece_Analysis_Record[pYc][pXc][0] == 3)
+//            hand_cut_three++;
+//        //2-"** *"
+//        piece_next = pXc - Piece_Analysis_Record[pYc][pXc][1] - 1;
+//        if (piece_next>=0 && Piece_Analysis_Record[pYc][pXc][0]*Piece_Analysis_Record[pYc][piece_next][0] == 2 )
+//            hand_cut_three++;
+//        piece_next = pXc + Piece_Analysis_Record[pYc][pXc][0] - Piece_Analysis_Record[pYc][pXc][1] + 2;
+//        if (piece_next<BOARD_CELL_NO && Piece_Analysis_Record[pYc][pXc][0]*Piece_Analysis_Record[pYc][piece_next][0] == 2 )
+//            hand_cut_three++;
+//        //3-"****"
+//        if (Piece_Analysis_Record[pYc][pXc][0] == 4)
+//            hand_cut_four++;
+//        //4-"*** *"
+//        piece_next = pXc - Piece_Analysis_Record[pYc][pXc][1] - 1;
+//        if (piece_next>=0 && Piece_Analysis_Record[pYc][pXc][0]*Piece_Analysis_Record[pYc][piece_next][0] == 3 )
+//            hand_cut_four++;
+//        piece_next = pXc + Piece_Analysis_Record[pYc][pXc][0] - Piece_Analysis_Record[pYc][pXc][1] + 2;
+//        if (piece_next<BOARD_CELL_NO && Piece_Analysis_Record[pYc][pXc][0]*Piece_Analysis_Record[pYc][piece_next][0] == 3 )
+//            hand_cut_four++;
+//        //5-"** **"
+//        piece_next = pXc - Piece_Analysis_Record[pYc][pXc][1] - 1;
+//        if (piece_next>=0 && Piece_Analysis_Record[pYc][pXc][0] == 2 && Piece_Analysis_Record[pYc][piece_next][0] == 2 )
+//            hand_cut_four++;
+//        piece_next = pXc + Piece_Analysis_Record[pYc][pXc][0] - Piece_Analysis_Record[pYc][pXc][1] + 2;
+//        if (piece_next<BOARD_CELL_NO && Piece_Analysis_Record[pYc][pXc][0] == 2 && Piece_Analysis_Record[pYc][piece_next][0] == 2 )
+//            hand_cut_four++;
+//        //6-"***...***"
+//        if (Piece_Analysis_Record[pYc][pXc][0] > 5)
+//            hand_cut_six++;
+//        //////////////////////////////////////////////////////////////////
+//        //         Start check hand-cut of verticle direction           //
+//        ///////////////////////////////////////////////////////////////////
+//        //1-"***"
+//        if (Piece_Analysis_Record[pYc][pXc][2] == 3)
+//            hand_cut_three++;
+//        //2-"** *"
+//        piece_next = pYc - Piece_Analysis_Record[pYc][pXc][3] - 1;
+//        if (piece_next>=0 && Piece_Analysis_Record[pYc][pXc][2]*Piece_Analysis_Record[piece_next][pXc][2] == 2 )
+//            hand_cut_three++;
+//        piece_next = pYc + Piece_Analysis_Record[pYc][pXc][2] - Piece_Analysis_Record[pYc][pXc][3] + 2;
+//        if (piece_next<BOARD_CELL_NO && Piece_Analysis_Record[pYc][pXc][2]*Piece_Analysis_Record[piece_next][pXc][2] == 2 )
+//            hand_cut_three++;
+//        //3-"****"
+//        if (Piece_Analysis_Record[pYc][pXc][2] == 4)
+//            hand_cut_four++;
+//        //4-"*** *"
+//        piece_next = pYc - Piece_Analysis_Record[pYc][pXc][3] - 1;
+//        if (piece_next>=0 && Piece_Analysis_Record[pYc][pXc][2]*Piece_Analysis_Record[piece_next][pXc][2] == 3 )
+//            hand_cut_four++;
+//        piece_next = pYc + Piece_Analysis_Record[pYc][pXc][2] - Piece_Analysis_Record[pYc][pXc][3] + 2;
+//        if (piece_next<BOARD_CELL_NO && Piece_Analysis_Record[pYc][pXc][2]*Piece_Analysis_Record[piece_next][pXc][2] == 3 )
+//            hand_cut_four++;
+//        //5-"** **"
+//        piece_next = pYc - Piece_Analysis_Record[pYc][pXc][3] - 1;
+//        if (piece_next>=0 && Piece_Analysis_Record[pYc][pXc][2] == 2 && Piece_Analysis_Record[piece_next][pXc][2] == 2 )
+//            hand_cut_four++;
+//        piece_next = pYc + Piece_Analysis_Record[pYc][pXc][2] - Piece_Analysis_Record[pYc][pXc][3] + 2;
+//        if (piece_next<BOARD_CELL_NO && Piece_Analysis_Record[pYc][pXc][2] == 2 && Piece_Analysis_Record[piece_next][pXc][2] == 2 )
+//            hand_cut_four++;
+//        //6-"***...***"
+//        if (Piece_Analysis_Record[pYc][pXc][2] > 5)
+//            hand_cut_six++;
+//        ///////////////////////////////////////////////////////////////////
+//        //          Start check hand-cut of BL-to-TR direction           //
+//        ///////////////////////////////////////////////////////////////////
+//        //1-"***"
+//        if (Piece_Analysis_Record[pYc][pXc][4] == 3)
+//            hand_cut_three++;
+//        //2-"** *"
+//        piece_next = pXc - Piece_Analysis_Record[pYc][pXc][5] - 1;
+//        piece_next2 = pYc + Piece_Analysis_Record[pYc][pXc][4] - Piece_Analysis_Record[pYc][pXc][5] + 2;
+//        if (piece_next>=0 && piece_next2<BOARD_CELL_NO && Piece_Analysis_Record[pYc][pXc][4]*Piece_Analysis_Record[piece_next2][piece_next][4] == 2 )
+//            hand_cut_three++;
+//        piece_next = pXc + Piece_Analysis_Record[pYc][pXc][4] - Piece_Analysis_Record[pYc][pXc][5] + 2;
+//        piece_next2 = pYc - Piece_Analysis_Record[pYc][pXc][5] - 1;
+//        if (piece_next<BOARD_CELL_NO && piece_next2>=0 && Piece_Analysis_Record[pYc][pXc][4]*Piece_Analysis_Record[piece_next2][piece_next][4] == 2 )
+//            hand_cut_three++;
+//        //3-"****"
+//        if (Piece_Analysis_Record[pYc][pXc][4] == 4)
+//            hand_cut_four++;
+//        //4-"*** *"
+//        piece_next = pXc - Piece_Analysis_Record[pYc][pXc][5] - 1;
+//        piece_next2 = pYc + Piece_Analysis_Record[pYc][pXc][4] - Piece_Analysis_Record[pYc][pXc][5] + 2;
+//        if (piece_next>=0 && piece_next2<BOARD_CELL_NO && Piece_Analysis_Record[pYc][pXc][4]*Piece_Analysis_Record[piece_next2][piece_next][4] == 3 )
+//            hand_cut_four++;
+//        piece_next = pXc + Piece_Analysis_Record[pYc][pXc][4] - Piece_Analysis_Record[pYc][pXc][5] + 2;
+//        piece_next2 = pYc - Piece_Analysis_Record[pYc][pXc][5] - 1;
+//        if (piece_next<BOARD_CELL_NO && piece_next2>=0 && Piece_Analysis_Record[pYc][pXc][4]*Piece_Analysis_Record[piece_next2][piece_next][4] == 3 )
+//            hand_cut_four++;
+//        //5-"** **"
+//        piece_next = pXc - Piece_Analysis_Record[pYc][pXc][5] - 1;
+//        piece_next2 = pYc + Piece_Analysis_Record[pYc][pXc][4] - Piece_Analysis_Record[pYc][pXc][5] + 2;
+//        if (piece_next>=0 && piece_next2<BOARD_CELL_NO && Piece_Analysis_Record[pYc][pXc][4]==2 && Piece_Analysis_Record[piece_next2][piece_next][4] == 2 )
+//            hand_cut_four++;
+//        piece_next = pXc + Piece_Analysis_Record[pYc][pXc][4] - Piece_Analysis_Record[pYc][pXc][5] + 2;
+//        piece_next2 = pYc - Piece_Analysis_Record[pYc][pXc][5] - 1;
+//        if (piece_next<BOARD_CELL_NO && piece_next2>=0 && Piece_Analysis_Record[pYc][pXc][4]==2 && Piece_Analysis_Record[piece_next2][piece_next][4] == 2 )
+//            hand_cut_four++;
+//        //6-"***...***"
+//        if (Piece_Analysis_Record[pYc][pXc][4] > 5)
+//            hand_cut_six++;
+//        ///////////////////////////////////////////////////////////////////
+//        //          Start check hand-cut of TL-to-BR direction           //
+//        ///////////////////////////////////////////////////////////////////
+//        //1-"***"
+//        if (Piece_Analysis_Record[pYc][pXc][6] == 3)
+//            hand_cut_three++;
+//        //2-"** *"
+//        piece_next = pXc - Piece_Analysis_Record[pYc][pXc][7] - 1;
+//        piece_next2 = pYc - Piece_Analysis_Record[pYc][pXc][7] - 1;
+//        if (piece_next>=0 && piece_next2>=0 && Piece_Analysis_Record[pYc][pXc][6]*Piece_Analysis_Record[piece_next2][piece_next][6] == 2 )
+//            hand_cut_three++;
+//        piece_next = pXc + Piece_Analysis_Record[pYc][pXc][6] - Piece_Analysis_Record[pYc][pXc][7] + 2;
+//        piece_next2 = pYc + Piece_Analysis_Record[pYc][pXc][6] - Piece_Analysis_Record[pYc][pXc][7] + 2;
+//        if (piece_next<BOARD_CELL_NO && piece_next2<BOARD_CELL_NO && Piece_Analysis_Record[pYc][pXc][6]*Piece_Analysis_Record[piece_next2][piece_next][6] == 2 )
+//            hand_cut_three++;
+//        //3-"****"
+//        if (Piece_Analysis_Record[pYc][pXc][6] == 4)
+//            hand_cut_four++;
+//        //4-"*** *"
+//        piece_next = pXc - Piece_Analysis_Record[pYc][pXc][7] - 1;
+//        piece_next2 = pYc - Piece_Analysis_Record[pYc][pXc][7] - 1;
+//        if (piece_next>=0 && piece_next2>=0 && Piece_Analysis_Record[pYc][pXc][6]*Piece_Analysis_Record[piece_next2][piece_next][6] == 3 )
+//            hand_cut_four++;
+//        piece_next = pXc + Piece_Analysis_Record[pYc][pXc][6] - Piece_Analysis_Record[pYc][pXc][7] + 2;
+//        piece_next2 = pYc + Piece_Analysis_Record[pYc][pXc][6] - Piece_Analysis_Record[pYc][pXc][7] + 2;
+//        if (piece_next<BOARD_CELL_NO && piece_next2<BOARD_CELL_NO && Piece_Analysis_Record[pYc][pXc][6]*Piece_Analysis_Record[piece_next2][piece_next][6] == 3 )
+//            hand_cut_four++;
+//        //5-"** **"
+//        piece_next = pXc - Piece_Analysis_Record[pYc][pXc][7] - 1;
+//        piece_next2 = pYc - Piece_Analysis_Record[pYc][pXc][7] - 1;
+//        if (piece_next>=0 && piece_next2>=0 && Piece_Analysis_Record[pYc][pXc][6]==2 && Piece_Analysis_Record[piece_next2][piece_next][6] == 2 )
+//            hand_cut_four++;
+//        piece_next = pXc + Piece_Analysis_Record[pYc][pXc][6] - Piece_Analysis_Record[pYc][pXc][7] + 2;
+//        piece_next2 = pYc + Piece_Analysis_Record[pYc][pXc][6] - Piece_Analysis_Record[pYc][pXc][7] + 2;
+//        if (piece_next<BOARD_CELL_NO && piece_next2<BOARD_CELL_NO && Piece_Analysis_Record[pYc][pXc][6]==2 && Piece_Analysis_Record[piece_next2][piece_next][6] == 2 )
+//            hand_cut_four++;
+//        //6-"***...***"
+//        if (Piece_Analysis_Record[pYc][pXc][6] > 5)
+//            hand_cut_six++;
+//            
+//        if (hand_cut_three >= 2 || hand_cut_four >= 2 || hand_cut_six >= 1)
+//        {
+//            win_state = 1;
+//            gobang_win_display(1 - is_white_mode);
+//            continue;
+//        }
+//    }
+    if (gobang_handcut_check(Piece_Analysis_Record, is_white_mode, pXc, pYc))
     {
-        int piece_next = 0;
-        int piece_next2 = 0;    //for the other cordinate of lean direction
-        ///////////////////////////////////////////////////////////////////
-        //         Start check hand-cut of horizontal direction          //
-        ///////////////////////////////////////////////////////////////////
-        //1-"***"
-        if (Piece_Analysis_Record[pYc][pXc][0] == 3)
-            hand_cut_three++;
-        //2-"** *"
-        piece_next = pXc - Piece_Analysis_Record[pYc][pXc][1] - 1;
-        if (piece_next>=0 && Piece_Analysis_Record[pYc][pXc][0]*Piece_Analysis_Record[pYc][piece_next][0] == 2 )
-            hand_cut_three++;
-        piece_next = pXc + Piece_Analysis_Record[pYc][pXc][0] - Piece_Analysis_Record[pYc][pXc][1] + 2;
-        if (piece_next<BOARD_CELL_NO && Piece_Analysis_Record[pYc][pXc][0]*Piece_Analysis_Record[pYc][piece_next][0] == 2 )
-            hand_cut_three++;
-        //3-"****"
-        if (Piece_Analysis_Record[pYc][pXc][0] == 4)
-            hand_cut_four++;
-        //4-"*** *"
-        piece_next = pXc - Piece_Analysis_Record[pYc][pXc][1] - 1;
-        if (piece_next>=0 && Piece_Analysis_Record[pYc][pXc][0]*Piece_Analysis_Record[pYc][piece_next][0] == 3 )
-            hand_cut_four++;
-        piece_next = pXc + Piece_Analysis_Record[pYc][pXc][0] - Piece_Analysis_Record[pYc][pXc][1] + 2;
-        if (piece_next<BOARD_CELL_NO && Piece_Analysis_Record[pYc][pXc][0]*Piece_Analysis_Record[pYc][piece_next][0] == 3 )
-            hand_cut_four++;
-        //5-"** **"
-        piece_next = pXc - Piece_Analysis_Record[pYc][pXc][1] - 1;
-        if (piece_next>=0 && Piece_Analysis_Record[pYc][pXc][0] == 2 && Piece_Analysis_Record[pYc][piece_next][0] == 2 )
-            hand_cut_four++;
-        piece_next = pXc + Piece_Analysis_Record[pYc][pXc][0] - Piece_Analysis_Record[pYc][pXc][1] + 2;
-        if (piece_next<BOARD_CELL_NO && Piece_Analysis_Record[pYc][pXc][0] == 2 && Piece_Analysis_Record[pYc][piece_next][0] == 2 )
-            hand_cut_four++;
-        //6-"***...***"
-        if (Piece_Analysis_Record[pYc][pXc][0] > 5)
-            hand_cut_six++;
-        //////////////////////////////////////////////////////////////////
-        //         Start check hand-cut of verticle direction           //
-        ///////////////////////////////////////////////////////////////////
-        //1-"***"
-        if (Piece_Analysis_Record[pYc][pXc][2] == 3)
-            hand_cut_three++;
-        //2-"** *"
-        piece_next = pYc - Piece_Analysis_Record[pYc][pXc][3] - 1;
-        if (piece_next>=0 && Piece_Analysis_Record[pYc][pXc][2]*Piece_Analysis_Record[piece_next][pXc][2] == 2 )
-            hand_cut_three++;
-        piece_next = pYc + Piece_Analysis_Record[pYc][pXc][2] - Piece_Analysis_Record[pYc][pXc][3] + 2;
-        if (piece_next<BOARD_CELL_NO && Piece_Analysis_Record[pYc][pXc][2]*Piece_Analysis_Record[piece_next][pXc][2] == 2 )
-            hand_cut_three++;
-        //3-"****"
-        if (Piece_Analysis_Record[pYc][pXc][2] == 4)
-            hand_cut_four++;
-        //4-"*** *"
-        piece_next = pYc - Piece_Analysis_Record[pYc][pXc][3] - 1;
-        if (piece_next>=0 && Piece_Analysis_Record[pYc][pXc][2]*Piece_Analysis_Record[piece_next][pXc][2] == 3 )
-            hand_cut_four++;
-        piece_next = pYc + Piece_Analysis_Record[pYc][pXc][2] - Piece_Analysis_Record[pYc][pXc][3] + 2;
-        if (piece_next<BOARD_CELL_NO && Piece_Analysis_Record[pYc][pXc][2]*Piece_Analysis_Record[piece_next][pXc][2] == 3 )
-            hand_cut_four++;
-        //5-"** **"
-        piece_next = pYc - Piece_Analysis_Record[pYc][pXc][3] - 1;
-        if (piece_next>=0 && Piece_Analysis_Record[pYc][pXc][2] == 2 && Piece_Analysis_Record[piece_next][pXc][2] == 2 )
-            hand_cut_four++;
-        piece_next = pYc + Piece_Analysis_Record[pYc][pXc][2] - Piece_Analysis_Record[pYc][pXc][3] + 2;
-        if (piece_next<BOARD_CELL_NO && Piece_Analysis_Record[pYc][pXc][2] == 2 && Piece_Analysis_Record[piece_next][pXc][2] == 2 )
-            hand_cut_four++;
-        //6-"***...***"
-        if (Piece_Analysis_Record[pYc][pXc][2] > 5)
-            hand_cut_six++;
-        ///////////////////////////////////////////////////////////////////
-        //          Start check hand-cut of BL-to-TR direction           //
-        ///////////////////////////////////////////////////////////////////
-        //1-"***"
-        if (Piece_Analysis_Record[pYc][pXc][4] == 3)
-            hand_cut_three++;
-        //2-"** *"
-        piece_next = pXc - Piece_Analysis_Record[pYc][pXc][5] - 1;
-        piece_next2 = pYc + Piece_Analysis_Record[pYc][pXc][4] - Piece_Analysis_Record[pYc][pXc][5] + 2;
-        if (piece_next>=0 && piece_next2<BOARD_CELL_NO && Piece_Analysis_Record[pYc][pXc][4]*Piece_Analysis_Record[piece_next2][piece_next][4] == 2 )
-            hand_cut_three++;
-        piece_next = pXc + Piece_Analysis_Record[pYc][pXc][4] - Piece_Analysis_Record[pYc][pXc][5] + 2;
-        piece_next2 = pYc - Piece_Analysis_Record[pYc][pXc][5] - 1;
-        if (piece_next<BOARD_CELL_NO && piece_next2>=0 && Piece_Analysis_Record[pYc][pXc][4]*Piece_Analysis_Record[piece_next2][piece_next][4] == 2 )
-            hand_cut_three++;
-        //3-"****"
-        if (Piece_Analysis_Record[pYc][pXc][4] == 4)
-            hand_cut_four++;
-        //4-"*** *"
-        piece_next = pXc - Piece_Analysis_Record[pYc][pXc][5] - 1;
-        piece_next2 = pYc + Piece_Analysis_Record[pYc][pXc][4] - Piece_Analysis_Record[pYc][pXc][5] + 2;
-        if (piece_next>=0 && piece_next2<BOARD_CELL_NO && Piece_Analysis_Record[pYc][pXc][4]*Piece_Analysis_Record[piece_next2][piece_next][4] == 3 )
-            hand_cut_four++;
-        piece_next = pXc + Piece_Analysis_Record[pYc][pXc][4] - Piece_Analysis_Record[pYc][pXc][5] + 2;
-        piece_next2 = pYc - Piece_Analysis_Record[pYc][pXc][5] - 1;
-        if (piece_next<BOARD_CELL_NO && piece_next2>=0 && Piece_Analysis_Record[pYc][pXc][4]*Piece_Analysis_Record[piece_next2][piece_next][4] == 3 )
-            hand_cut_four++;
-        //5-"** **"
-        piece_next = pXc - Piece_Analysis_Record[pYc][pXc][5] - 1;
-        piece_next2 = pYc + Piece_Analysis_Record[pYc][pXc][4] - Piece_Analysis_Record[pYc][pXc][5] + 2;
-        if (piece_next>=0 && piece_next2<BOARD_CELL_NO && Piece_Analysis_Record[pYc][pXc][4]==2 && Piece_Analysis_Record[piece_next2][piece_next][4] == 2 )
-            hand_cut_four++;
-        piece_next = pXc + Piece_Analysis_Record[pYc][pXc][4] - Piece_Analysis_Record[pYc][pXc][5] + 2;
-        piece_next2 = pYc - Piece_Analysis_Record[pYc][pXc][5] - 1;
-        if (piece_next<BOARD_CELL_NO && piece_next2>=0 && Piece_Analysis_Record[pYc][pXc][4]==2 && Piece_Analysis_Record[piece_next2][piece_next][4] == 2 )
-            hand_cut_four++;
-        //6-"***...***"
-        if (Piece_Analysis_Record[pYc][pXc][4] > 5)
-            hand_cut_six++;
-        ///////////////////////////////////////////////////////////////////
-        //          Start check hand-cut of TL-to-BR direction           //
-        ///////////////////////////////////////////////////////////////////
-        //1-"***"
-        if (Piece_Analysis_Record[pYc][pXc][6] == 3)
-            hand_cut_three++;
-        //2-"** *"
-        piece_next = pXc - Piece_Analysis_Record[pYc][pXc][7] - 1;
-        piece_next2 = pYc - Piece_Analysis_Record[pYc][pXc][7] - 1;
-        if (piece_next>=0 && piece_next2>=0 && Piece_Analysis_Record[pYc][pXc][6]*Piece_Analysis_Record[piece_next2][piece_next][6] == 2 )
-            hand_cut_three++;
-        piece_next = pXc + Piece_Analysis_Record[pYc][pXc][6] - Piece_Analysis_Record[pYc][pXc][7] + 2;
-        piece_next2 = pYc + Piece_Analysis_Record[pYc][pXc][6] - Piece_Analysis_Record[pYc][pXc][7] + 2;
-        if (piece_next<BOARD_CELL_NO && piece_next2<BOARD_CELL_NO && Piece_Analysis_Record[pYc][pXc][6]*Piece_Analysis_Record[piece_next2][piece_next][6] == 2 )
-            hand_cut_three++;
-        //3-"****"
-        if (Piece_Analysis_Record[pYc][pXc][6] == 4)
-            hand_cut_four++;
-        //4-"*** *"
-        piece_next = pXc - Piece_Analysis_Record[pYc][pXc][7] - 1;
-        piece_next2 = pYc - Piece_Analysis_Record[pYc][pXc][7] - 1;
-        if (piece_next>=0 && piece_next2>=0 && Piece_Analysis_Record[pYc][pXc][6]*Piece_Analysis_Record[piece_next2][piece_next][6] == 3 )
-            hand_cut_four++;
-        piece_next = pXc + Piece_Analysis_Record[pYc][pXc][6] - Piece_Analysis_Record[pYc][pXc][7] + 2;
-        piece_next2 = pYc + Piece_Analysis_Record[pYc][pXc][6] - Piece_Analysis_Record[pYc][pXc][7] + 2;
-        if (piece_next<BOARD_CELL_NO && piece_next2<BOARD_CELL_NO && Piece_Analysis_Record[pYc][pXc][6]*Piece_Analysis_Record[piece_next2][piece_next][6] == 3 )
-            hand_cut_four++;
-        //5-"** **"
-        piece_next = pXc - Piece_Analysis_Record[pYc][pXc][7] - 1;
-        piece_next2 = pYc - Piece_Analysis_Record[pYc][pXc][7] - 1;
-        if (piece_next>=0 && piece_next2>=0 && Piece_Analysis_Record[pYc][pXc][6]==2 && Piece_Analysis_Record[piece_next2][piece_next][6] == 2 )
-            hand_cut_four++;
-        piece_next = pXc + Piece_Analysis_Record[pYc][pXc][6] - Piece_Analysis_Record[pYc][pXc][7] + 2;
-        piece_next2 = pYc + Piece_Analysis_Record[pYc][pXc][6] - Piece_Analysis_Record[pYc][pXc][7] + 2;
-        if (piece_next<BOARD_CELL_NO && piece_next2<BOARD_CELL_NO && Piece_Analysis_Record[pYc][pXc][6]==2 && Piece_Analysis_Record[piece_next2][piece_next][6] == 2 )
-            hand_cut_four++;
-        //6-"***...***"
-        if (Piece_Analysis_Record[pYc][pXc][6] > 5)
-            hand_cut_six++;
-            
-        if (hand_cut_three >= 2 || hand_cut_four >= 2 || hand_cut_six >= 1)
-        {
-            win_state = 1;
-            gobang_win_display(1 - is_white_mode);
-            continue;
-        }
+        win_state = 1;
+        gobang_win_display(1 - is_white_mode);
+        continue;
     }
     is_white_mode = 1 - is_white_mode;   //Set back to the Piece of the other color
   }

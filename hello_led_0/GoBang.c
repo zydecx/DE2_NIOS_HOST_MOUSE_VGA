@@ -29,44 +29,10 @@ void gobang_board_display()
    }
 }
 //-------------------------------------------------------------------------
-void reset_piece_record_array()
+void gobang_instr_display()
 {
-    int ex, ey, ez;
-    for (ex = 0; ex < BOARD_CELL_NO; ++ex)
-        for (ey = 0; ey < BOARD_CELL_NO; ++ey)
-        {
-            Piece_Record[ex][ey] = 0;
-            for (ez = 0; ez < 8; ++ez)
-                Piece_Analysis_Record[ex][ey][ez] = 0;
-        }
-}
-//-------------------------------------------------------------------------
-void gobang_draw_box(int width, int height, int posx, int posy)
-{
-    int ex, ey;
-    for (ex=posx; ex<posx+width; ++ex)
-        for (ey=posy; ey<posy+height; ++ey)
-            Vga_Clr_Pixel(VGA_0_BASE, ex, ey);
-    for (ex=posx; ex<posx+width; ++ex)
-    {
-        Vga_Set_Pixel(VGA_0_BASE, ex, posy);
-        Vga_Set_Pixel(VGA_0_BASE, ex, (posy+height-1));
-    }
-    for (ey=posy; ey<posy+height; ++ey)
-    {
-        Vga_Set_Pixel(VGA_0_BASE, posx, ey);
-        Vga_Set_Pixel(VGA_0_BASE, (posx+width-1), ey);
-    }
-}
-//-------------------------------------------------------------------------
-void gobang_game_start()
-{
-    Set_Pixel_On_Color(1023,1023,1023);
-    reset_piece_record_array();
-    clean_screen();
-    gobang_board_display(); 
-    
-    gobang_draw_box(130, 420, 475, 30); 
+    gobang_box_fill(130, 420, 475, 30);
+    gobang_box_outline(130, 420, 475, 30);  
     unsigned char text1[] = " 五子棋对战平台";
 //    五
 //    25788
@@ -96,6 +62,50 @@ void gobang_game_start()
     gobang_show_text(text1, 480, 180);
 }
 //-------------------------------------------------------------------------
+void reset_piece_record_array()
+{
+    int ex, ey, ez;
+    for (ex = 0; ex < BOARD_CELL_NO; ++ex)
+        for (ey = 0; ey < BOARD_CELL_NO; ++ey)
+        {
+            Piece_Record[ex][ey] = 0;
+            for (ez = 0; ez < 8; ++ez)
+                Piece_Analysis_Record[ex][ey][ez] = 0;
+        }
+}
+//-------------------------------------------------------------------------
+void gobang_box_fill(int width, int height, int posx, int posy)
+{
+    int ex, ey;
+    for (ex=posx; ex<posx+width; ++ex)
+        for (ey=posy; ey<posy+height; ++ey)
+            Vga_Clr_Pixel(VGA_0_BASE, ex, ey);
+}
+//-------------------------------------------------------------------------
+void gobang_box_outline(int width, int height, int posx, int posy)
+{
+    int ex, ey;
+    for (ex=posx; ex<posx+width; ++ex)
+    {
+        Vga_Set_Pixel(VGA_0_BASE, ex, posy);
+        Vga_Set_Pixel(VGA_0_BASE, ex, (posy+height-1));
+    }
+    for (ey=posy; ey<posy+height; ++ey)
+    {
+        Vga_Set_Pixel(VGA_0_BASE, posx, ey);
+        Vga_Set_Pixel(VGA_0_BASE, (posx+width-1), ey);
+    }
+}
+//-------------------------------------------------------------------------
+void gobang_game_start()
+{
+    Set_Pixel_On_Color(1023,1023,1023);
+    reset_piece_record_array();
+    clean_screen();
+    gobang_board_display(); 
+    gobang_instr_display();
+}
+//-------------------------------------------------------------------------
 void gobang_win_display(unsigned int isWhite)
 {
     if (isWhite == 1)
@@ -111,6 +121,32 @@ void gobang_win_display(unsigned int isWhite)
         gobang_show_text("   亮爷二逼！  ", 480, 360);
         Set_Pixel_On_Color(1023,408,0);    //Orange
 //        Set_Pixel_On_Color(1023,612,408);    //Orange
+    }
+}
+//-------------------------------------------------------------------------
+void gobang_draw_circle(int radius, int posx, int posy)
+{
+    int ii, jj;
+    for (ii=-radius; ii<(radius+1); ++ii)
+    {
+        for (jj=-radius; jj<(radius+1); ++jj)
+        {   
+            if ((ii*ii+jj*jj)>(radius*radius+1))    continue;
+            Vga_Set_Pixel(VGA_0_BASE, (posx+ii), (posy+jj));
+        }
+    }
+}
+//-------------------------------------------------------------------------
+void gobang_clear_circle(int radius, int posx, int posy)
+{
+    int ii, jj;
+    for (ii=-radius; ii<(radius+1); ++ii)
+    {
+        for (jj=-radius; jj<(radius+1); ++jj)
+        {   
+            if ((ii*ii+jj*jj)>(radius*radius+1))    continue;
+            Vga_Clr_Pixel(VGA_0_BASE, (posx+ii), (posy+jj));
+        }
     }
 }
 //-------------------------------------------------------------------------
@@ -234,4 +270,163 @@ void gobang_show_chinese(int* text, int posx, int posy)
     }
 }
 //-------------------------------------------------------------------------
-
+unsigned int gobang_handcut_check(int piece_record[][BOARD_CELL_NO][8], unsigned int isWhiteMode, int posx, int posy)
+{
+    if (isWhiteMode)    return 0;
+    
+    int piece_next = 0;
+    int piece_next2 = 0;    //for the other cordinate of lean direction
+//    int handcut_record[8][6] = {0};   //8 Directions, 6 Kinds of Handcut
+    int hand_cut_three = 0;
+    int hand_cut_four = 0;
+    int hand_cut_six = 0;
+    ///////////////////////////////////////////////////////////////////
+    //         Start check hand-cut of horizontal direction          //
+    ///////////////////////////////////////////////////////////////////
+    //1-"***"
+    if (piece_record[posy][posx][0] == 3)
+        hand_cut_three++;
+    //2-"** *"
+    piece_next = posx - piece_record[posy][posx][1] - 1;
+    if (piece_next>=0 && piece_record[posy][posx][0]*piece_record[posy][piece_next][0] == 2 )
+        hand_cut_three++;
+    piece_next = posx + piece_record[posy][posx][0] - piece_record[posy][posx][1] + 2;
+    if (piece_next<BOARD_CELL_NO && piece_record[posy][posx][0]*piece_record[posy][piece_next][0] == 2 )
+        hand_cut_three++;
+    //3-"****"
+    if (piece_record[posy][posx][0] == 4)
+        hand_cut_four++;
+    //4-"*** *"
+    piece_next = posx - piece_record[posy][posx][1] - 1;
+    if (piece_next>=0 && piece_record[posy][posx][0]*piece_record[posy][piece_next][0] == 3 )
+        hand_cut_four++;
+    piece_next = posx + piece_record[posy][posx][0] - piece_record[posy][posx][1] + 2;
+    if (piece_next<BOARD_CELL_NO && piece_record[posy][posx][0]*piece_record[posy][piece_next][0] == 3 )
+        hand_cut_four++;
+    //5-"** **"
+    piece_next = posx - piece_record[posy][posx][1] - 1;
+    if (piece_next>=0 && piece_record[posy][posx][0] == 2 && piece_record[posy][piece_next][0] == 2 )
+        hand_cut_four++;
+    piece_next = posx + piece_record[posy][posx][0] - piece_record[posy][posx][1] + 2;
+    if (piece_next<BOARD_CELL_NO && piece_record[posy][posx][0] == 2 && piece_record[posy][piece_next][0] == 2 )
+        hand_cut_four++;
+    //6-"***...***"
+    if (piece_record[posy][posx][0] > 5)
+        hand_cut_six++;
+    //////////////////////////////////////////////////////////////////
+    //         Start check hand-cut of verticle direction           //
+    ///////////////////////////////////////////////////////////////////
+    //1-"***"
+    if (piece_record[posy][posx][2] == 3)
+        hand_cut_three++;
+    //2-"** *"
+    piece_next = posy - piece_record[posy][posx][3] - 1;
+    if (piece_next>=0 && piece_record[posy][posx][2]*piece_record[piece_next][posx][2] == 2 )
+        hand_cut_three++;
+    piece_next = posy + piece_record[posy][posx][2] - piece_record[posy][posx][3] + 2;
+    if (piece_next<BOARD_CELL_NO && piece_record[posy][posx][2]*piece_record[piece_next][posx][2] == 2 )
+        hand_cut_three++;
+    //3-"****"
+    if (piece_record[posy][posx][2] == 4)
+        hand_cut_four++;
+    //4-"*** *"
+    piece_next = posy - piece_record[posy][posx][3] - 1;
+    if (piece_next>=0 && piece_record[posy][posx][2]*piece_record[piece_next][posx][2] == 3 )
+        hand_cut_four++;
+    piece_next = posy + piece_record[posy][posx][2] - piece_record[posy][posx][3] + 2;
+    if (piece_next<BOARD_CELL_NO && piece_record[posy][posx][2]*piece_record[piece_next][posx][2] == 3 )
+        hand_cut_four++;
+    //5-"** **"
+    piece_next = posy - piece_record[posy][posx][3] - 1;
+    if (piece_next>=0 && piece_record[posy][posx][2] == 2 && piece_record[piece_next][posx][2] == 2 )
+        hand_cut_four++;
+    piece_next = posy + piece_record[posy][posx][2] - piece_record[posy][posx][3] + 2;
+    if (piece_next<BOARD_CELL_NO && piece_record[posy][posx][2] == 2 && piece_record[piece_next][posx][2] == 2 )
+        hand_cut_four++;
+    //6-"***...***"
+    if (piece_record[posy][posx][2] > 5)
+        hand_cut_six++;
+    ///////////////////////////////////////////////////////////////////
+    //          Start check hand-cut of BL-to-TR direction           //
+    ///////////////////////////////////////////////////////////////////
+    //1-"***"
+    if (piece_record[posy][posx][4] == 3)
+        hand_cut_three++;
+    //2-"** *"
+    piece_next = posx - piece_record[posy][posx][5] - 1;
+    piece_next2 = posy + piece_record[posy][posx][4] - piece_record[posy][posx][5] + 2;
+    if (piece_next>=0 && piece_next2<BOARD_CELL_NO && piece_record[posy][posx][4]*piece_record[piece_next2][piece_next][4] == 2 )
+        hand_cut_three++;
+    piece_next = posx + piece_record[posy][posx][4] - piece_record[posy][posx][5] + 2;
+    piece_next2 = posy - piece_record[posy][posx][5] - 1;
+    if (piece_next<BOARD_CELL_NO && piece_next2>=0 && piece_record[posy][posx][4]*piece_record[piece_next2][piece_next][4] == 2 )
+        hand_cut_three++;
+    //3-"****"
+    if (piece_record[posy][posx][4] == 4)
+        hand_cut_four++;
+    //4-"*** *"
+    piece_next = posx - piece_record[posy][posx][5] - 1;
+    piece_next2 = posy + piece_record[posy][posx][4] - piece_record[posy][posx][5] + 2;
+    if (piece_next>=0 && piece_next2<BOARD_CELL_NO && piece_record[posy][posx][4]*piece_record[piece_next2][piece_next][4] == 3 )
+        hand_cut_four++;
+    piece_next = posx + piece_record[posy][posx][4] - piece_record[posy][posx][5] + 2;
+    piece_next2 = posy - piece_record[posy][posx][5] - 1;
+    if (piece_next<BOARD_CELL_NO && piece_next2>=0 && piece_record[posy][posx][4]*piece_record[piece_next2][piece_next][4] == 3 )
+        hand_cut_four++;
+    //5-"** **"
+    piece_next = posx - piece_record[posy][posx][5] - 1;
+    piece_next2 = posy + piece_record[posy][posx][4] - piece_record[posy][posx][5] + 2;
+    if (piece_next>=0 && piece_next2<BOARD_CELL_NO && piece_record[posy][posx][4]==2 && piece_record[piece_next2][piece_next][4] == 2 )
+        hand_cut_four++;
+    piece_next = posx + piece_record[posy][posx][4] - piece_record[posy][posx][5] + 2;
+    piece_next2 = posy - piece_record[posy][posx][5] - 1;
+    if (piece_next<BOARD_CELL_NO && piece_next2>=0 && piece_record[posy][posx][4]==2 && piece_record[piece_next2][piece_next][4] == 2 )
+        hand_cut_four++;
+    //6-"***...***"
+    if (piece_record[posy][posx][4] > 5)
+        hand_cut_six++;
+    ///////////////////////////////////////////////////////////////////
+    //          Start check hand-cut of TL-to-BR direction           //
+    ///////////////////////////////////////////////////////////////////
+    //1-"***"
+    if (piece_record[posy][posx][6] == 3)
+        hand_cut_three++;
+    //2-"** *"
+    piece_next = posx - piece_record[posy][posx][7] - 1;
+    piece_next2 = posy - piece_record[posy][posx][7] - 1;
+    if (piece_next>=0 && piece_next2>=0 && piece_record[posy][posx][6]*piece_record[piece_next2][piece_next][6] == 2 )
+        hand_cut_three++;
+    piece_next = posx + piece_record[posy][posx][6] - piece_record[posy][posx][7] + 2;
+    piece_next2 = posy + piece_record[posy][posx][6] - piece_record[posy][posx][7] + 2;
+    if (piece_next<BOARD_CELL_NO && piece_next2<BOARD_CELL_NO && piece_record[posy][posx][6]*piece_record[piece_next2][piece_next][6] == 2 )
+        hand_cut_three++;
+    //3-"****"
+    if (piece_record[posy][posx][6] == 4)
+        hand_cut_four++;
+    //4-"*** *"
+    piece_next = posx - piece_record[posy][posx][7] - 1;
+    piece_next2 = posy - piece_record[posy][posx][7] - 1;
+    if (piece_next>=0 && piece_next2>=0 && piece_record[posy][posx][6]*piece_record[piece_next2][piece_next][6] == 3 )
+        hand_cut_four++;
+    piece_next = posx + piece_record[posy][posx][6] - piece_record[posy][posx][7] + 2;
+    piece_next2 = posy + piece_record[posy][posx][6] - piece_record[posy][posx][7] + 2;
+    if (piece_next<BOARD_CELL_NO && piece_next2<BOARD_CELL_NO && piece_record[posy][posx][6]*piece_record[piece_next2][piece_next][6] == 3 )
+        hand_cut_four++;
+    //5-"** **"
+    piece_next = posx - piece_record[posy][posx][7] - 1;
+    piece_next2 = posy - piece_record[posy][posx][7] - 1;
+    if (piece_next>=0 && piece_next2>=0 && piece_record[posy][posx][6]==2 && piece_record[piece_next2][piece_next][6] == 2 )
+        hand_cut_four++;
+    piece_next = posx + piece_record[posy][posx][6] - piece_record[posy][posx][7] + 2;
+    piece_next2 = posy + piece_record[posy][posx][6] - piece_record[posy][posx][7] + 2;
+    if (piece_next<BOARD_CELL_NO && piece_next2<BOARD_CELL_NO && piece_record[posy][posx][6]==2 && piece_record[piece_next2][piece_next][6] == 2 )
+        hand_cut_four++;
+    //6-"***...***"
+    if (piece_record[posy][posx][6] > 5)
+        hand_cut_six++;
+        
+    if (hand_cut_three >= 2 || hand_cut_four >= 2 || hand_cut_six >= 1)
+        return 1;
+    
+    return 0;
+}

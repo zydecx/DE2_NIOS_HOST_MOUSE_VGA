@@ -21,3 +21,9 @@
 --1\Add Chinese Characters Display to GoBang Game
 --2\Remind with string when either side wins
 -2012-12-14!
+-2012-12-15!
+--1\Package draw-piece function to GoBang.h
+--2\Package hand-cut-check function to GoBang.h, treating array as a parameter
+--3\Package introduction-display function to GoBang.h
+--4\Seperate draw-box function to box-fill and box-outline functions for further convenience
+-2012-12-15!
