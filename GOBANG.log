@@ -27,3 +27,8 @@
 --3\Package introduction-display function to GoBang.h
 --4\Seperate draw-box function to box-fill and box-outline functions for further convenience
 -2012-12-15!
+-2012-12-21!
+--1\Support negative number display
+--2\Enhance hand-cut detection by introducing new array
+--3\Fix bug in hand-cut detection in BL-to-TR direction
+-2012-12-21!

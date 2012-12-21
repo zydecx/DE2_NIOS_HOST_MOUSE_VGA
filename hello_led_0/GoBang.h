@@ -33,12 +33,12 @@ void gobang_clear_circle(int, int, int);
 //void set_ASCII8x16_Table();
 
 /*
- * Display single character, a letter or number, or a Chinese character
+ * Display single character(char format), a letter or number, or a Chinese character
  * (unsigned char* charac, int isASC, int posx, int posy), isASC-if the character is ASCII character
  */
 void gobang_show_char(unsigned char*, int, int, int);  
 /*
- * Display strings, a series of letters, numbers, or Chinese characters
+ * Display strings(char format), a series of letters, numbers, or Chinese characters
  * (unsigned char* text, int posx, int posy)
  */ 
 void gobang_show_text(unsigned char*, int, int);  
@@ -48,6 +48,11 @@ void gobang_show_text(unsigned char*, int, int);
  * (int* text, int posx, int posy)
  */      
 void gobang_show_chinese(int*, int, int);
+/*
+ * Display single number(int format)
+ * (int num, int posx, int posy)
+ */
+void gobang_show_num(int, int, int);
 
 unsigned int gobang_handcut_check(int[][BOARD_CELL_NO][8], unsigned int, int, int);
 
