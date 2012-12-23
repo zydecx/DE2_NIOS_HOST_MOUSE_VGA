@@ -42,11 +42,10 @@ void play_mouse(unsigned int addr)
  unsigned int tog=0;
  
  unsigned int is_white_mode = 0; //Black Piece(1=1-2*is_white_mode) as default
+ unsigned int lclick_no = 0;
  unsigned int rclick_no = 0;    //no. of right click; Reset when left click
  unsigned int win_state = 0;    //change to 1 when player wins a game, so that no more pieces are allowed
- unsigned int hand_cut_three = 0;   //record number of hand cut of three when is_white_mode==0(Black)
- unsigned int hand_cut_four = 0;    //record number of hand cut of four when is_white_mode==0(Black)
- unsigned int hand_cut_six = 0;     //record number of hand cut of more than five when is_white_mode==0(Black)
+ unsigned int place_piece_status;   //return value of gobang_place_piece(), 2-successful, 3-fail, 0-black win, 1-white win
  
  freq=0x00;
  erase_all();
@@ -102,415 +101,50 @@ void play_mouse(unsigned int addr)
 
     //pX-X coordinate of the cursor of mouse
     //pY-Y coordinate of the cursor of mouse
-    int ii,jj;
-    int pXc, pYc, pXcc, pYcc;
-    pXc = (pX-BOARD_LEFT_EDGE) / BOARD_HOR_MARGIN;    
-    pXcc = (pX-BOARD_LEFT_EDGE) % BOARD_HOR_MARGIN;
-    pYc = (pY-BOARD_TOP_EDGE) / BOARD_VER_MARGIN;
-    pYcc = (pY-BOARD_TOP_EDGE) % BOARD_VER_MARGIN;
-    if (pXcc > BOARD_HOR_MARGIN/2)
-    {
-        pXc++;
-        pXcc = BOARD_HOR_MARGIN - pXcc;
-    }
-    if (pYcc > BOARD_VER_MARGIN/2)
-    {
-        pYc++;
-        pYcc = BOARD_VER_MARGIN - pYcc;
-    }
-    if (pX<BOARD_LEFT_EDGE && (BOARD_LEFT_EDGE-pX)<BOARD_PIECE_OFFSET)
-    {
-        pXc = 0;
-        pXcc = BOARD_LEFT_EDGE-pX;
-    }
-    if (pY<BOARD_TOP_EDGE && (BOARD_TOP_EDGE-pY)<BOARD_PIECE_OFFSET)
-    {
-        pYc = 0;
-        pYcc = BOARD_TOP_EDGE-pY;
-    }
     
   /*if(B==1)
   Vga_Set_Pixel(VGA_0_BASE,pX,pY);*/
   if(B==1){
+//    if (lclick_no==1)   continue; //Forbid continuely placing pieces by keeping left click
+    lclick_no = 1;
     rclick_no = 0;  //Reset NO of right-click
-    hand_cut_three = 0;
-    hand_cut_four = 0;
-    hand_cut_six = 0;
-    
-    if (win_state == 1) continue;   //in win-state, no more pieces are allowed
-    if ((pXcc*pXcc+pYcc*pYcc)>BOARD_PIECE_OFFSET*BOARD_PIECE_OFFSET)    continue;
-    if (pXc < 0 || pYc < 0 || pXc >= BOARD_CELL_NO || pYc >= BOARD_CELL_NO) continue;
-    if (Piece_Record[pYc][pXc] != 0)  continue;
-    
-    if (is_white_mode == 1)
+    if (pX > INSTR_BORDER)
+        gobang_read_instr_state(pX, pY);
+    else if (win_state==0)
     {
-        gobang_draw_circle(BOARD_PIECE_RADIUS, (pXc*BOARD_HOR_MARGIN+BOARD_LEFT_EDGE), (pYc*BOARD_VER_MARGIN+BOARD_TOP_EDGE));
-//        for (ii=-BOARD_PIECE_RADIUS; ii<(BOARD_PIECE_RADIUS+1); ++ii)
-//        {
-//            for (jj=-BOARD_PIECE_RADIUS; jj<(BOARD_PIECE_RADIUS+1); ++jj)
-//            {   
-//                if ((ii*ii+jj*jj)>(BOARD_PIECE_RADIUS*BOARD_PIECE_RADIUS+1))    continue;
-//                Vga_Set_Pixel(VGA_0_BASE, (pXc*BOARD_HOR_MARGIN+BOARD_LEFT_EDGE+ii), (pYc*BOARD_VER_MARGIN+BOARD_TOP_EDGE+jj));
-//            }
-//        }
-//        is_white_mode = 0;   //Set back to Black Piece
+        place_piece_status = gobang_place_piece(pX, pY, is_white_mode);
+        switch (place_piece_status)    //2-successful, 3-fail, 0-black win, 1-white win
+        {
+            case 2: 
+                is_white_mode = 1 - is_white_mode;   //Set back to the Piece of the other color
+                break;
+            case 3:
+                break;
+            default:
+                win_state = 1;
+                is_white_mode = place_piece_status;
+                gobang_win_display(is_white_mode);
+                break;
+        }
     }
-    else
-    {
-        gobang_draw_circle(BOARD_PIECE_RADIUS, (pXc*BOARD_HOR_MARGIN+BOARD_LEFT_EDGE), (pYc*BOARD_VER_MARGIN+BOARD_TOP_EDGE));
-        gobang_clear_circle(BOARD_PIECE_RADIUS*5/6, (pXc*BOARD_HOR_MARGIN+BOARD_LEFT_EDGE), (pYc*BOARD_VER_MARGIN+BOARD_TOP_EDGE));
-//        for (ii=-BOARD_PIECE_RADIUS; ii<(BOARD_PIECE_RADIUS+1); ++ii)
-//        {
-//            for (jj=-BOARD_PIECE_RADIUS; jj<(BOARD_PIECE_RADIUS+1); ++jj)
-//            {   
-//                if((ii*ii+jj*jj)>(BOARD_PIECE_RADIUS*BOARD_PIECE_RADIUS+1))    continue;
-//                if((ii*ii+jj*jj)>(BOARD_PIECE_RADIUS*BOARD_PIECE_RADIUS*25/36+1))
-//                    Vga_Set_Pixel(VGA_0_BASE,(pXc*BOARD_HOR_MARGIN+BOARD_LEFT_EDGE+ii),(pYc*BOARD_VER_MARGIN+BOARD_TOP_EDGE+jj));
-//                else
-//                    Vga_Clr_Pixel(VGA_0_BASE,(pXc*BOARD_HOR_MARGIN+BOARD_LEFT_EDGE+ii),(pYc*BOARD_VER_MARGIN+BOARD_TOP_EDGE+jj));
-//            }
-//        }
-//        is_white_mode = 1;   //Set back to White Piece
-    }
-    
-    //Start update the piece on board
-    Piece_Record[pYc][pXc] = 1-2*is_white_mode;
-    
-    ///////////////////////////////////////////////////////////////////
-    //         Start update the state of Horzontal direction         //
-    //////////////////////////////////////////////////////////////////
-    int Series_Start_Point;
-    int Series_End_Point;
-    //left side
-    if (pXc>0 && Piece_Record[pYc][pXc]*Piece_Record[pYc][pXc-1] > 0)
-    {
-        Series_Start_Point = pXc - abs(Piece_Analysis_Record[pYc][pXc-1][0]);
-        Piece_Analysis_Record[pYc][pXc][0] = (1-2*is_white_mode) + Piece_Analysis_Record[pYc][pXc-1][0];  //how many, 1-black, -1-white
-        Piece_Analysis_Record[pYc][pXc][1] = 1 + Piece_Analysis_Record[pYc][pXc-1][1]; //第几个
-    }
-    else
-    {
-        Series_Start_Point = pXc;
-        Piece_Analysis_Record[pYc][pXc][0] = 1-2*is_white_mode;  //how many, 1-black, -1-white
-    }
-    //right side
-    if (pXc<BOARD_CELL_NO-1 && Piece_Record[pYc][pXc]*Piece_Record[pYc][pXc+1] > 0)
-    {
-        Series_End_Point = pXc + abs(Piece_Analysis_Record[pYc][pXc+1][0]);
-        Piece_Analysis_Record[pYc][pXc][0] += Piece_Analysis_Record[pYc][pXc+1][0];  //how many, 1-black, -1-white
-    }
-    else
-    {
-        Series_End_Point = pXc;
-    }
-    //decide if the player wins
-    if (abs(Piece_Analysis_Record[pYc][pXc][0]) == 5)
-    {
-        win_state = 1;
-        gobang_win_display(is_white_mode);
-        continue;
-    }
-    //update the horizontal state
-    for (ii = Series_Start_Point; ii <= Series_End_Point; ++ii)
-    {
-        Piece_Analysis_Record[pYc][ii][0] = Piece_Analysis_Record[pYc][pXc][0];
-        Piece_Analysis_Record[pYc][ii][1] = ii - Series_Start_Point + 1;
-    }
-    ///////////////////////////////////////////////////////////////////
-    //         Start update the state of Verticle direction          //
-    ///////////////////////////////////////////////////////////////////
-//    int Series_Start_Point;
-//    int Series_End_Point;
-    //top side
-    if (pYc>0 && Piece_Record[pYc][pXc]*Piece_Record[pYc-1][pXc] > 0)
-    {
-        Series_Start_Point = pYc - abs(Piece_Analysis_Record[pYc-1][pXc][2]);
-        Piece_Analysis_Record[pYc][pXc][2] = (1-2*is_white_mode) + Piece_Analysis_Record[pYc-1][pXc][2];  //how many, 1-black, -1-white
-        Piece_Analysis_Record[pYc][pXc][3] = 1 + Piece_Analysis_Record[pYc-1][pXc][3]; //第几个
-    }
-    else
-    {
-        Series_Start_Point = pYc;
-        Piece_Analysis_Record[pYc][pXc][2] = 1-2*is_white_mode;  //how many, 1-black, -1-white
-    }
-    //bottom side
-    if (pYc<BOARD_CELL_NO-1 && Piece_Record[pYc][pXc]*Piece_Record[pYc+1][pXc] > 0)
-    {
-        Series_End_Point = pYc + abs(Piece_Analysis_Record[pYc+1][pXc][2]);
-        Piece_Analysis_Record[pYc][pXc][2] += Piece_Analysis_Record[pYc+1][pXc][2];  //how many, 1-black, -1-white
-    }
-    else
-    {
-        Series_End_Point = pYc;
-    }
-    //decide if the player wins
-    if (abs(Piece_Analysis_Record[pYc][pXc][2]) == 5)
-    {
-        win_state = 1;
-        gobang_win_display(is_white_mode);
-        continue;
-    }
-    //update the vertical state
-    for (jj = Series_Start_Point; jj <= Series_End_Point; ++jj)
-    {
-        Piece_Analysis_Record[jj][pXc][2] = Piece_Analysis_Record[pYc][pXc][2];
-        Piece_Analysis_Record[jj][pXc][3] = jj - Series_Start_Point + 1;
-    }
-    ///////////////////////////////////////////////////////////////////
-    //         Start update the state of BL-to-TR direction          //
-    ///////////////////////////////////////////////////////////////////
-    int Series_Start_Point2; //verticle start cordinate
-    int Series_Stend_Points; //number of point-series
-    //bottom-left side
-    if (pXc>0 && pYc<BOARD_CELL_NO-1 && Piece_Record[pYc][pXc]*Piece_Record[pYc+1][pXc-1] > 0)
-    {
-        Series_Start_Point = pXc - abs(Piece_Analysis_Record[pYc+1][pXc-1][4]);
-        Series_Start_Point2 = pYc + abs(Piece_Analysis_Record[pYc+1][pXc-1][4]);
-        Piece_Analysis_Record[pYc][pXc][4] = (1-2*is_white_mode) + Piece_Analysis_Record[pYc+1][pXc-1][4];  //how many, 1-black, -1-white
-        Piece_Analysis_Record[pYc][pXc][5] = 1 + Piece_Analysis_Record[pYc+1][pXc-1][5]; //第几个
-    }
-    else
-    {
-        Series_Start_Point = pXc;
-        Series_Start_Point2 = pYc;
-        Piece_Analysis_Record[pYc][pXc][4] = 1-2*is_white_mode;  //how many, 1-black, -1-white
-    }
-    //top-right side
-    if (pXc<BOARD_CELL_NO-1 && pYc>0 && Piece_Record[pYc][pXc]*Piece_Record[pYc-1][pXc+1] > 0)
-    {
-        Piece_Analysis_Record[pYc][pXc][4] += Piece_Analysis_Record[pYc-1][pXc+1][4];  //how many, 1-black, -1-white
-    }
-    Series_Stend_Points = abs(Piece_Analysis_Record[pYc][pXc][4]);
-    //decide if the player wins
-    if (Series_Stend_Points == 5)
-    {
-        win_state = 1;
-        gobang_win_display(is_white_mode);
-        continue;
-    }
-    //update the BL-to-TR state
-    for (ii = 0; ii < Series_Stend_Points; ++ii)
-    {
-        Piece_Analysis_Record[Series_Start_Point2-ii][Series_Start_Point+ii][4] = Piece_Analysis_Record[pYc][pXc][4];
-        Piece_Analysis_Record[Series_Start_Point2-ii][Series_Start_Point+ii][5] = ii + 1;
-    }
-    ///////////////////////////////////////////////////////////////////
-    //         Start update the state of TL-to-BR direction          //
-    ///////////////////////////////////////////////////////////////////
-//    int Series_Start_Point2; //verticle start cordinate
-//    int Series_Stend_Points; //number of point-series
-    //top-left side
-    if (pXc>0 && pYc>0 && Piece_Record[pYc][pXc]*Piece_Record[pYc-1][pXc-1] > 0)
-    {
-        Series_Start_Point = pXc - abs(Piece_Analysis_Record[pYc-1][pXc-1][6]);
-        Series_Start_Point2 = pYc - abs(Piece_Analysis_Record[pYc-1][pXc-1][6]);
-        Piece_Analysis_Record[pYc][pXc][6] = (1-2*is_white_mode) + Piece_Analysis_Record[pYc-1][pXc-1][6];  //how many, 1-black, -1-white
-        Piece_Analysis_Record[pYc][pXc][7] = 1 + Piece_Analysis_Record[pYc-1][pXc-1][7]; //第几个
-    }
-    else
-    {
-        Series_Start_Point = pXc;
-        Series_Start_Point2 = pYc;
-        Piece_Analysis_Record[pYc][pXc][6] = 1-2*is_white_mode;  //how many, 1-black, -1-white
-    }
-    //bottom-right side
-    if (pXc<BOARD_CELL_NO-1 && pYc<BOARD_CELL_NO-1 && Piece_Record[pYc][pXc]*Piece_Record[pYc+1][pXc+1] > 0)
-    {
-        Piece_Analysis_Record[pYc][pXc][6] += Piece_Analysis_Record[pYc+1][pXc+1][6];  //how many, 1-black, -1-white
-    }
-    Series_Stend_Points = abs(Piece_Analysis_Record[pYc][pXc][6]);
-    //decide if the player wins
-    if (Series_Stend_Points == 5)
-    {
-        win_state = 1;
-        gobang_win_display(is_white_mode);
-        continue;
-    }
-    //update the TL-to-BR state
-    for (ii = 0; ii < Series_Stend_Points; ++ii)
-    {
-        Piece_Analysis_Record[Series_Start_Point2+ii][Series_Start_Point+ii][6] = Piece_Analysis_Record[pYc][pXc][6];
-        Piece_Analysis_Record[Series_Start_Point2+ii][Series_Start_Point+ii][7] = ii + 1;
-    }
-    
-    
-    ///////////////////////////////////////////////////////////////////
-    //          Start check if the hand-cut problem exists           //
-    /////////////////////////////////////////////////////////////////// 
-//    if (is_white_mode == 0)
-//    {
-//        int piece_next = 0;
-//        int piece_next2 = 0;    //for the other cordinate of lean direction
-//        ///////////////////////////////////////////////////////////////////
-//        //         Start check hand-cut of horizontal direction          //
-//        ///////////////////////////////////////////////////////////////////
-//        //1-"***"
-//        if (Piece_Analysis_Record[pYc][pXc][0] == 3)
-//            hand_cut_three++;
-//        //2-"** *"
-//        piece_next = pXc - Piece_Analysis_Record[pYc][pXc][1] - 1;
-//        if (piece_next>=0 && Piece_Analysis_Record[pYc][pXc][0]*Piece_Analysis_Record[pYc][piece_next][0] == 2 )
-//            hand_cut_three++;
-//        piece_next = pXc + Piece_Analysis_Record[pYc][pXc][0] - Piece_Analysis_Record[pYc][pXc][1] + 2;
-//        if (piece_next<BOARD_CELL_NO && Piece_Analysis_Record[pYc][pXc][0]*Piece_Analysis_Record[pYc][piece_next][0] == 2 )
-//            hand_cut_three++;
-//        //3-"****"
-//        if (Piece_Analysis_Record[pYc][pXc][0] == 4)
-//            hand_cut_four++;
-//        //4-"*** *"
-//        piece_next = pXc - Piece_Analysis_Record[pYc][pXc][1] - 1;
-//        if (piece_next>=0 && Piece_Analysis_Record[pYc][pXc][0]*Piece_Analysis_Record[pYc][piece_next][0] == 3 )
-//            hand_cut_four++;
-//        piece_next = pXc + Piece_Analysis_Record[pYc][pXc][0] - Piece_Analysis_Record[pYc][pXc][1] + 2;
-//        if (piece_next<BOARD_CELL_NO && Piece_Analysis_Record[pYc][pXc][0]*Piece_Analysis_Record[pYc][piece_next][0] == 3 )
-//            hand_cut_four++;
-//        //5-"** **"
-//        piece_next = pXc - Piece_Analysis_Record[pYc][pXc][1] - 1;
-//        if (piece_next>=0 && Piece_Analysis_Record[pYc][pXc][0] == 2 && Piece_Analysis_Record[pYc][piece_next][0] == 2 )
-//            hand_cut_four++;
-//        piece_next = pXc + Piece_Analysis_Record[pYc][pXc][0] - Piece_Analysis_Record[pYc][pXc][1] + 2;
-//        if (piece_next<BOARD_CELL_NO && Piece_Analysis_Record[pYc][pXc][0] == 2 && Piece_Analysis_Record[pYc][piece_next][0] == 2 )
-//            hand_cut_four++;
-//        //6-"***...***"
-//        if (Piece_Analysis_Record[pYc][pXc][0] > 5)
-//            hand_cut_six++;
-//        //////////////////////////////////////////////////////////////////
-//        //         Start check hand-cut of verticle direction           //
-//        ///////////////////////////////////////////////////////////////////
-//        //1-"***"
-//        if (Piece_Analysis_Record[pYc][pXc][2] == 3)
-//            hand_cut_three++;
-//        //2-"** *"
-//        piece_next = pYc - Piece_Analysis_Record[pYc][pXc][3] - 1;
-//        if (piece_next>=0 && Piece_Analysis_Record[pYc][pXc][2]*Piece_Analysis_Record[piece_next][pXc][2] == 2 )
-//            hand_cut_three++;
-//        piece_next = pYc + Piece_Analysis_Record[pYc][pXc][2] - Piece_Analysis_Record[pYc][pXc][3] + 2;
-//        if (piece_next<BOARD_CELL_NO && Piece_Analysis_Record[pYc][pXc][2]*Piece_Analysis_Record[piece_next][pXc][2] == 2 )
-//            hand_cut_three++;
-//        //3-"****"
-//        if (Piece_Analysis_Record[pYc][pXc][2] == 4)
-//            hand_cut_four++;
-//        //4-"*** *"
-//        piece_next = pYc - Piece_Analysis_Record[pYc][pXc][3] - 1;
-//        if (piece_next>=0 && Piece_Analysis_Record[pYc][pXc][2]*Piece_Analysis_Record[piece_next][pXc][2] == 3 )
-//            hand_cut_four++;
-//        piece_next = pYc + Piece_Analysis_Record[pYc][pXc][2] - Piece_Analysis_Record[pYc][pXc][3] + 2;
-//        if (piece_next<BOARD_CELL_NO && Piece_Analysis_Record[pYc][pXc][2]*Piece_Analysis_Record[piece_next][pXc][2] == 3 )
-//            hand_cut_four++;
-//        //5-"** **"
-//        piece_next = pYc - Piece_Analysis_Record[pYc][pXc][3] - 1;
-//        if (piece_next>=0 && Piece_Analysis_Record[pYc][pXc][2] == 2 && Piece_Analysis_Record[piece_next][pXc][2] == 2 )
-//            hand_cut_four++;
-//        piece_next = pYc + Piece_Analysis_Record[pYc][pXc][2] - Piece_Analysis_Record[pYc][pXc][3] + 2;
-//        if (piece_next<BOARD_CELL_NO && Piece_Analysis_Record[pYc][pXc][2] == 2 && Piece_Analysis_Record[piece_next][pXc][2] == 2 )
-//            hand_cut_four++;
-//        //6-"***...***"
-//        if (Piece_Analysis_Record[pYc][pXc][2] > 5)
-//            hand_cut_six++;
-//        ///////////////////////////////////////////////////////////////////
-//        //          Start check hand-cut of BL-to-TR direction           //
-//        ///////////////////////////////////////////////////////////////////
-//        //1-"***"
-//        if (Piece_Analysis_Record[pYc][pXc][4] == 3)
-//            hand_cut_three++;
-//        //2-"** *"
-//        piece_next = pXc - Piece_Analysis_Record[pYc][pXc][5] - 1;
-//        piece_next2 = pYc + Piece_Analysis_Record[pYc][pXc][4] - Piece_Analysis_Record[pYc][pXc][5] + 2;
-//        if (piece_next>=0 && piece_next2<BOARD_CELL_NO && Piece_Analysis_Record[pYc][pXc][4]*Piece_Analysis_Record[piece_next2][piece_next][4] == 2 )
-//            hand_cut_three++;
-//        piece_next = pXc + Piece_Analysis_Record[pYc][pXc][4] - Piece_Analysis_Record[pYc][pXc][5] + 2;
-//        piece_next2 = pYc - Piece_Analysis_Record[pYc][pXc][5] - 1;
-//        if (piece_next<BOARD_CELL_NO && piece_next2>=0 && Piece_Analysis_Record[pYc][pXc][4]*Piece_Analysis_Record[piece_next2][piece_next][4] == 2 )
-//            hand_cut_three++;
-//        //3-"****"
-//        if (Piece_Analysis_Record[pYc][pXc][4] == 4)
-//            hand_cut_four++;
-//        //4-"*** *"
-//        piece_next = pXc - Piece_Analysis_Record[pYc][pXc][5] - 1;
-//        piece_next2 = pYc + Piece_Analysis_Record[pYc][pXc][4] - Piece_Analysis_Record[pYc][pXc][5] + 2;
-//        if (piece_next>=0 && piece_next2<BOARD_CELL_NO && Piece_Analysis_Record[pYc][pXc][4]*Piece_Analysis_Record[piece_next2][piece_next][4] == 3 )
-//            hand_cut_four++;
-//        piece_next = pXc + Piece_Analysis_Record[pYc][pXc][4] - Piece_Analysis_Record[pYc][pXc][5] + 2;
-//        piece_next2 = pYc - Piece_Analysis_Record[pYc][pXc][5] - 1;
-//        if (piece_next<BOARD_CELL_NO && piece_next2>=0 && Piece_Analysis_Record[pYc][pXc][4]*Piece_Analysis_Record[piece_next2][piece_next][4] == 3 )
-//            hand_cut_four++;
-//        //5-"** **"
-//        piece_next = pXc - Piece_Analysis_Record[pYc][pXc][5] - 1;
-//        piece_next2 = pYc + Piece_Analysis_Record[pYc][pXc][4] - Piece_Analysis_Record[pYc][pXc][5] + 2;
-//        if (piece_next>=0 && piece_next2<BOARD_CELL_NO && Piece_Analysis_Record[pYc][pXc][4]==2 && Piece_Analysis_Record[piece_next2][piece_next][4] == 2 )
-//            hand_cut_four++;
-//        piece_next = pXc + Piece_Analysis_Record[pYc][pXc][4] - Piece_Analysis_Record[pYc][pXc][5] + 2;
-//        piece_next2 = pYc - Piece_Analysis_Record[pYc][pXc][5] - 1;
-//        if (piece_next<BOARD_CELL_NO && piece_next2>=0 && Piece_Analysis_Record[pYc][pXc][4]==2 && Piece_Analysis_Record[piece_next2][piece_next][4] == 2 )
-//            hand_cut_four++;
-//        //6-"***...***"
-//        if (Piece_Analysis_Record[pYc][pXc][4] > 5)
-//            hand_cut_six++;
-//        ///////////////////////////////////////////////////////////////////
-//        //          Start check hand-cut of TL-to-BR direction           //
-//        ///////////////////////////////////////////////////////////////////
-//        //1-"***"
-//        if (Piece_Analysis_Record[pYc][pXc][6] == 3)
-//            hand_cut_three++;
-//        //2-"** *"
-//        piece_next = pXc - Piece_Analysis_Record[pYc][pXc][7] - 1;
-//        piece_next2 = pYc - Piece_Analysis_Record[pYc][pXc][7] - 1;
-//        if (piece_next>=0 && piece_next2>=0 && Piece_Analysis_Record[pYc][pXc][6]*Piece_Analysis_Record[piece_next2][piece_next][6] == 2 )
-//            hand_cut_three++;
-//        piece_next = pXc + Piece_Analysis_Record[pYc][pXc][6] - Piece_Analysis_Record[pYc][pXc][7] + 2;
-//        piece_next2 = pYc + Piece_Analysis_Record[pYc][pXc][6] - Piece_Analysis_Record[pYc][pXc][7] + 2;
-//        if (piece_next<BOARD_CELL_NO && piece_next2<BOARD_CELL_NO && Piece_Analysis_Record[pYc][pXc][6]*Piece_Analysis_Record[piece_next2][piece_next][6] == 2 )
-//            hand_cut_three++;
-//        //3-"****"
-//        if (Piece_Analysis_Record[pYc][pXc][6] == 4)
-//            hand_cut_four++;
-//        //4-"*** *"
-//        piece_next = pXc - Piece_Analysis_Record[pYc][pXc][7] - 1;
-//        piece_next2 = pYc - Piece_Analysis_Record[pYc][pXc][7] - 1;
-//        if (piece_next>=0 && piece_next2>=0 && Piece_Analysis_Record[pYc][pXc][6]*Piece_Analysis_Record[piece_next2][piece_next][6] == 3 )
-//            hand_cut_four++;
-//        piece_next = pXc + Piece_Analysis_Record[pYc][pXc][6] - Piece_Analysis_Record[pYc][pXc][7] + 2;
-//        piece_next2 = pYc + Piece_Analysis_Record[pYc][pXc][6] - Piece_Analysis_Record[pYc][pXc][7] + 2;
-//        if (piece_next<BOARD_CELL_NO && piece_next2<BOARD_CELL_NO && Piece_Analysis_Record[pYc][pXc][6]*Piece_Analysis_Record[piece_next2][piece_next][6] == 3 )
-//            hand_cut_four++;
-//        //5-"** **"
-//        piece_next = pXc - Piece_Analysis_Record[pYc][pXc][7] - 1;
-//        piece_next2 = pYc - Piece_Analysis_Record[pYc][pXc][7] - 1;
-//        if (piece_next>=0 && piece_next2>=0 && Piece_Analysis_Record[pYc][pXc][6]==2 && Piece_Analysis_Record[piece_next2][piece_next][6] == 2 )
-//            hand_cut_four++;
-//        piece_next = pXc + Piece_Analysis_Record[pYc][pXc][6] - Piece_Analysis_Record[pYc][pXc][7] + 2;
-//        piece_next2 = pYc + Piece_Analysis_Record[pYc][pXc][6] - Piece_Analysis_Record[pYc][pXc][7] + 2;
-//        if (piece_next<BOARD_CELL_NO && piece_next2<BOARD_CELL_NO && Piece_Analysis_Record[pYc][pXc][6]==2 && Piece_Analysis_Record[piece_next2][piece_next][6] == 2 )
-//            hand_cut_four++;
-//        //6-"***...***"
-//        if (Piece_Analysis_Record[pYc][pXc][6] > 5)
-//            hand_cut_six++;
-//            
-//        if (hand_cut_three >= 2 || hand_cut_four >= 2 || hand_cut_six >= 1)
-//        {
-//            win_state = 1;
-//            gobang_win_display(1 - is_white_mode);
-//            continue;
-//        }
-//    }
-    if (gobang_handcut_check(Piece_Analysis_Record, is_white_mode, pXc, pYc))
-    {
-        win_state = 1;
-        gobang_win_display(1 - is_white_mode);
-        continue;
-    }
-    is_white_mode = 1 - is_white_mode;   //Set back to the Piece of the other color
   }
   else if(B==2)
   {
 //    Vga_Clr_Pixel(VGA_0_BASE,pX,pY);
     rclick_no++;
+    lclick_no = 0;
     if (rclick_no > RCLICK_RESTART_THRESHOLD)
     {
         win_state = 0;
         is_white_mode = 0;
         gobang_game_start();
     }
+  }
+  else
+  {
+    lclick_no = 0;
+    rclick_no = 0;
+//    Vga_Set_Pixel(VGA_0_BASE, pX, pY);
   }
    
   }while((r16(HcRhP2) & 0x01) ==0x01);

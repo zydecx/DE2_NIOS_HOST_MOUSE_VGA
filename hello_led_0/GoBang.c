@@ -31,36 +31,162 @@ void gobang_board_display()
 //-------------------------------------------------------------------------
 void gobang_instr_display()
 {
-    gobang_box_fill(130, 420, 475, 30);
-    gobang_box_outline(130, 420, 475, 30);  
+    Instr_Array[0] = 1; //Welcome Mode
+    int IBox_Width, IBox_Height, IBox_Left, IBox_Top;
+    IBox_Width=130; IBox_Height=420; IBox_Left=475; IBox_Top=30;
+    gobang_box_fill(IBox_Width, IBox_Height, IBox_Left, IBox_Top);
+    gobang_box_outline(IBox_Width, IBox_Height, IBox_Left, IBox_Top); 
+    
+    int IBCont_Left = 480;
+    
+    int IBTitle_Left, IBTitle_Top;
+    IBTitle_Left=IBCont_Left; IBTitle_Top=45;
     unsigned char text1[] = " 五子棋对战平台";
-//    五
-//    25788
-//    子
-//    30756
-//    棋
-//    21276
-//    游
-//    28470
-//    戏
-//    26076
-//    平
-//    21036
-//    台
-//    24294
+    gobang_show_text(text1, IBTitle_Left, IBTitle_Top);
+//    五-25788,子-30756,棋-21276,游-28470,戏-26076,平-21036,台-24294
 //    int text11[]={25788,30756,21276,28470,26076,21036,24294};
+//    gobang_show_chinese(text11, IBTitle_Left, IBTitle_Top);
+
+    int IBWelc_Left, IBWelc_Top;
+    IBWelc_Left=IBCont_Left; IBWelc_Top=70;
     unsigned char text2[] = "Welcome to Play";
     unsigned char text3[] = " GOBANG GAME!! ";
-    unsigned char text4[] = "    VER 1.1    ";
-    unsigned char text5[] = "15th, Dec, 2012";
-    gobang_show_text(text1, 480, 70);
-//    gobang_show_chinese(text11, 480, 70);
+    unsigned char text4[] = "作者： 褚夫峰";
+    unsigned char text5[] = "       尹晨光";
+    gobang_show_text(text2, IBWelc_Left, IBWelc_Top);
+    gobang_show_text(text3, IBWelc_Left, (IBWelc_Top+25));
+    gobang_show_text(text4, IBWelc_Left, (IBWelc_Top+50));
+    gobang_show_text(text5, IBWelc_Left, (IBWelc_Top+75));
 //    gobang_show_num(75, 480, 160);
-    gobang_show_text(text2, 480, 100);
-    gobang_show_text(text3, 480, 130);
-//    gobang_show_text(text4, 480, 210);
-//    gobang_show_text(text5, 480, 240);
-//    gobang_show_text(text1, 480, 180);
+
+    int IBFunc_Left, IBFunc_Top;
+    IBFunc_Left=IBCont_Left; IBFunc_Top=175;
+    unsigned char text6[] = "功能选择：";
+    gobang_show_text(text6, IBFunc_Left, IBFunc_Top);
+    
+    unsigned char text7[] = "局胜制";
+    gobang_show_text(text7, IBFunc_Left, IBFunc_Top+25);
+    gobang_draw_circle(6, IBFunc_Left+6, IBFunc_Top+56);
+    gobang_clear_circle(4, IBFunc_Left+6, IBFunc_Top+56);
+    gobang_draw_circle(2, IBFunc_Left+6, IBFunc_Top+56);
+    gobang_show_num(1, IBFunc_Left+18, IBFunc_Top+50);
+    gobang_draw_circle(6, IBFunc_Left+46, IBFunc_Top+56);
+    gobang_clear_circle(4, IBFunc_Left+46, IBFunc_Top+56);
+    gobang_show_num(3, IBFunc_Left+58, IBFunc_Top+50);
+    gobang_draw_circle(6, IBFunc_Left+86, IBFunc_Top+56);
+    gobang_clear_circle(4, IBFunc_Left+86, IBFunc_Top+56);
+    gobang_show_num(5, IBFunc_Left+98, IBFunc_Top+50);
+    
+    unsigned char text8[] = "是否禁手";
+    gobang_show_text(text8, IBFunc_Left, IBFunc_Top+75);
+    gobang_draw_circle(6, IBFunc_Left+6, IBFunc_Top+108);
+    gobang_clear_circle(4, IBFunc_Left+6, IBFunc_Top+108);
+    gobang_draw_circle(2, IBFunc_Left+6, IBFunc_Top+108);
+    gobang_show_text("是", IBFunc_Left+18, IBFunc_Top+100);
+    gobang_draw_circle(6, IBFunc_Left+66, IBFunc_Top+108);
+    gobang_clear_circle(4, IBFunc_Left+66, IBFunc_Top+108);
+    gobang_show_text("否", IBFunc_Left+78, IBFunc_Top+100); 
+    
+    unsigned char text9[] = "对战模式";
+    gobang_show_text(text9, IBFunc_Left, IBFunc_Top+125);
+    gobang_draw_circle(6, IBFunc_Left+6, IBFunc_Top+158);
+    gobang_clear_circle(4, IBFunc_Left+6, IBFunc_Top+158);
+    gobang_draw_circle(2, IBFunc_Left+6, IBFunc_Top+158);
+    gobang_show_text("人人", IBFunc_Left+18, IBFunc_Top+150);
+    gobang_draw_circle(6, IBFunc_Left+66, IBFunc_Top+158);
+    gobang_clear_circle(4, IBFunc_Left+66, IBFunc_Top+158);
+    gobang_show_text("人机", IBFunc_Left+78, IBFunc_Top+150);
+    
+    
+//    gobang_draw_circle(6, IBFunc_Left+6, IBFunc_Top+183);
+//    gobang_clear_circle(4, IBFunc_Left+6, IBFunc_Top+183);
+//    gobang_draw_circle(2, IBFunc_Left+6, IBFunc_Top+183);
+//    gobang_show_text("先手", IBFunc_Left+18, IBFunc_Top+175);
+//    gobang_draw_circle(6, IBFunc_Left+66, IBFunc_Top+183);
+//    gobang_clear_circle(4, IBFunc_Left+66, IBFunc_Top+183);
+//    gobang_show_text("后手", IBFunc_Left+78, IBFunc_Top+175);
+    
+    unsigned char text10[] = "开始游戏";
+    int IBPlay_Width, IBPlay_Height, IBPlay_Left, IBPlay_Top;
+    IBPlay_Width=80; IBPlay_Height=35; IBPlay_Left=IBCont_Left+15; IBPlay_Top=385;
+    gobang_box_fullfill(IBPlay_Width, IBPlay_Height, IBPlay_Left, IBPlay_Top);
+    gobang_box_fill(70, IBPlay_Height*4/5, IBPlay_Left+5, IBPlay_Top+3);
+    gobang_box_outline(IBPlay_Width, IBPlay_Height, IBPlay_Left, IBPlay_Top); 
+    gobang_show_text(text10, IBPlay_Left+8, IBPlay_Top+8);
+}
+//-------------------------------------------------------------------------
+void gobang_instr_ongame_display()
+{
+    Ongame_Array[0]=Instr_Array[1]; //how many rounds
+    Ongame_Array[1]=1;              //current round(1 default)
+    
+    int IBox_Width, IBox_Height, IBox_Left, IBox_Top;
+    IBox_Width=120; IBox_Height=270; IBox_Left=480; IBox_Top=175;
+    gobang_box_fill(IBox_Width, IBox_Height, IBox_Left, IBox_Top);
+    
+    int IBCont_Left = 480;
+    
+    int IBPiece_Left, IBPiece_Top;
+    IBPiece_Left=IBCont_Left; IBPiece_Top=175;
+    
+    //显示棋子，代表当前由谁执棋
+    unsigned char text1[]="黑棋执子";
+    unsigned char text2[]="白棋执子";
+    int i=1;
+    int cur_centerx, cur_centery;
+    do{
+        cur_centerx = IBPiece_Left+(BOARD_PIECE_RADIUS+2)*(2*i-1);
+        cur_centery = IBPiece_Top+BOARD_PIECE_RADIUS;
+        if (Ongame_Array[2]==0) //Black is now playing
+        {
+            gobang_draw_circle(BOARD_PIECE_RADIUS, cur_centerx, cur_centery);
+            gobang_clear_circle(BOARD_PIECE_RADIUS*5/6, cur_centerx, cur_centery);
+            gobang_show_text(text1, IBPiece_Left, IBPiece_Top+40);
+        }
+        else    //White is now playing
+        {
+            gobang_draw_circle(BOARD_PIECE_RADIUS, cur_centerx, cur_centery);
+            gobang_show_text(text2, IBPiece_Left, IBPiece_Top+40);
+        }
+        ++i;
+    }
+    while(((BOARD_PIECE_RADIUS+2)*2*i<IBox_Width));
+    Ongame_Array[2] = 1 - Ongame_Array[2];  //turn to another user
+    
+    int IBFunc_Left, IBFunc_Top;
+    IBFunc_Left=IBCont_Left; IBFunc_Top=IBPiece_Top+75;//250
+    
+    //共#局，第#局
+    gobang_show_text("共", IBFunc_Left, IBFunc_Top);
+    gobang_show_num(Ongame_Array[0], IBFunc_Left+16, IBFunc_Top);
+    gobang_show_text("局,", IBFunc_Left+24, IBFunc_Top);
+    gobang_show_text("第", IBFunc_Left+56, IBFunc_Top);
+    gobang_show_num(Ongame_Array[1], IBFunc_Left+72, IBFunc_Top);
+    gobang_show_text("局", IBFunc_Left+80, IBFunc_Top);
+    
+    
+    unsigned char text4[] = "胜负情况：";
+    gobang_show_text(text4, IBFunc_Left, IBFunc_Top+25);
+    gobang_show_text("黑方", IBFunc_Left, IBFunc_Top+50);
+    gobang_show_num(Ongame_Array[3], IBFunc_Left+40, IBFunc_Top+50);
+    gobang_show_text("白方", IBFunc_Left+60, IBFunc_Top+50);
+    gobang_show_num(Ongame_Array[4], IBFunc_Left+100, IBFunc_Top+50);
+    
+    int IBPlay_Width, IBPlay_Height, IBPlay_Left, IBPlay_Top;
+    unsigned char text5[] = "请求悔棋";
+    IBPlay_Width=80; IBPlay_Height=35; IBPlay_Left=IBCont_Left+15; IBPlay_Top=345;
+    gobang_box_fullfill(IBPlay_Width, IBPlay_Height, IBPlay_Left, IBPlay_Top);
+    gobang_box_fill(70, IBPlay_Height*4/5, IBPlay_Left+5, IBPlay_Top+3);
+    gobang_box_outline(IBPlay_Width, IBPlay_Height, IBPlay_Left, IBPlay_Top); 
+    gobang_show_text(text5, IBPlay_Left+8, IBPlay_Top+8);
+    
+    unsigned char text6[] = "退出游戏";
+    IBPlay_Width=80; IBPlay_Height=35; IBPlay_Left=IBCont_Left+15; IBPlay_Top=385;
+    gobang_box_fullfill(IBPlay_Width, IBPlay_Height, IBPlay_Left, IBPlay_Top);
+    gobang_box_fill(70, IBPlay_Height*4/5, IBPlay_Left+5, IBPlay_Top+3);
+    gobang_box_outline(IBPlay_Width, IBPlay_Height, IBPlay_Left, IBPlay_Top); 
+    gobang_show_text(text6, IBPlay_Left+8, IBPlay_Top+8);
+    
 }
 //-------------------------------------------------------------------------
 void reset_piece_record_array()
@@ -73,6 +199,12 @@ void reset_piece_record_array()
             for (ez = 0; ez < 8; ++ez)
                 Piece_Analysis_Record[ex][ey][ez] = 0;
         }
+    //Instr_Array[5]:0-Mode(Welcome), 1-One Round, 2-Hand-cut, 3-Peer-Peer, 4-User first
+    for (ex = 0; ex < INSTR_ARRAY_SIZE; ++ex)
+        Instr_Array[ex] = 1;
+    //Ongame_Array[5]:0-No. of Rounds, 1-current round, 2-current color(W-1/B-0), 3-B wins rounds, 4-W wins rounds
+    for (ex = 0; ex < ONGAME_ARRAY_SIZE; ++ex)
+        Ongame_Array[ex] = 0;
 }
 //-------------------------------------------------------------------------
 void gobang_box_fill(int width, int height, int posx, int posy)
@@ -81,6 +213,14 @@ void gobang_box_fill(int width, int height, int posx, int posy)
     for (ex=posx; ex<posx+width; ++ex)
         for (ey=posy; ey<posy+height; ++ey)
             Vga_Clr_Pixel(VGA_0_BASE, ex, ey);
+}
+//-------------------------------------------------------------------------
+void gobang_box_fullfill(int width, int height, int posx, int posy)
+{
+    int ex, ey;
+    for (ex=posx; ex<posx+width; ++ex)
+        for (ey=posy; ey<posy+height; ++ey)
+            Vga_Set_Pixel(VGA_0_BASE, ex, ey);
 }
 //-------------------------------------------------------------------------
 void gobang_box_outline(int width, int height, int posx, int posy)
@@ -149,6 +289,14 @@ void gobang_clear_circle(int radius, int posx, int posy)
             Vga_Clr_Pixel(VGA_0_BASE, (posx+ii), (posy+jj));
         }
     }
+}
+//-------------------------------------------------------------------------
+unsigned int gobang_click_circle(int radius, int centerx, int centery, int posx, int posy)
+{
+     if (((posx-centerx)*(posx-centerx)+(posy-centery)*(posy-centery))<=(radius*radius))
+        return 1;
+     else
+        return 0;
 }
 //-------------------------------------------------------------------------
 void gobang_show_char(unsigned char* charac, int isASC, int posx, int posy)
@@ -301,6 +449,319 @@ void gobang_show_num(int num, int posx, int posy)
         gobang_show_text(cnum, posx, posy);
         posx += 8;
     }
+}
+//-------------------------------------------------------------------------
+void gobang_read_instr_state(int posx, int posy)
+{
+    int IBCont_Left = 480;
+    int radius = 6;
+    int cr = 4;
+    int dr = 2;
+    if (Instr_Array[0] == 1)    //welcome mode
+    {
+        int i, j;
+        int IBFunc_Left, IBFunc_Top;
+        IBFunc_Left=IBCont_Left; IBFunc_Top=175;
+        //局胜制
+        int instr_rounds[3][3] = {  {1, IBFunc_Left+6, IBFunc_Top+56},
+                                    {3, IBFunc_Left+46, IBFunc_Top+56},
+                                    {5, IBFunc_Left+86, IBFunc_Top+56}};
+        for (i=0; i<3; ++i)
+        {
+            if (gobang_click_circle(radius, instr_rounds[i][1], instr_rounds[i][2], posx, posy))
+            {
+                Instr_Array[1] = instr_rounds[i][0];
+                for (j=0; j<3; ++j)
+                {
+                   gobang_clear_circle(cr, instr_rounds[j][1], instr_rounds[j][2]);
+                }
+                gobang_draw_circle(dr, instr_rounds[i][1], instr_rounds[i][2]);
+                break;
+            }
+        }
+        //是否禁手
+        int instr_handcut[2][3] = { {1, IBFunc_Left+6, IBFunc_Top+108},
+                                    {0, IBFunc_Left+66, IBFunc_Top+108}};
+        for (i=0; i<2; ++i)
+        {
+            if (gobang_click_circle(radius, instr_handcut[i][1], instr_handcut[i][2], posx, posy))
+            {
+                Instr_Array[2] = instr_handcut[i][0];
+                for (j=0; j<2; ++j)
+                {
+                   gobang_clear_circle(cr, instr_handcut[j][1], instr_handcut[j][2]);
+                }
+                gobang_draw_circle(dr, instr_handcut[i][1], instr_handcut[i][2]);
+                break;
+            }
+        }
+        //人人/人机
+        int instr_pppc[2][3] = { {1, IBFunc_Left+6, IBFunc_Top+158},
+                                    {0, IBFunc_Left+66, IBFunc_Top+158}};
+        for (i=0; i<2; ++i)
+        {
+            if (gobang_click_circle(radius, instr_pppc[i][1], instr_pppc[i][2], posx, posy))
+            {
+                Instr_Array[3] = instr_pppc[i][0];
+                for (j=0; j<2; ++j)
+                {
+                   gobang_clear_circle(cr, instr_pppc[j][1], instr_pppc[j][2]);
+                }
+                gobang_draw_circle(dr, instr_pppc[i][1], instr_pppc[i][2]);
+                
+                if (Instr_Array[3]==0)
+                {
+                    gobang_draw_circle(6, IBFunc_Left+6, IBFunc_Top+183);
+                    gobang_clear_circle(4, IBFunc_Left+6, IBFunc_Top+183);
+                    gobang_draw_circle(2, IBFunc_Left+6, IBFunc_Top+183);
+                    gobang_show_text("先手", IBFunc_Left+18, IBFunc_Top+175);
+                    gobang_draw_circle(6, IBFunc_Left+66, IBFunc_Top+183);
+                    gobang_clear_circle(4, IBFunc_Left+66, IBFunc_Top+183);
+                    gobang_show_text("后手", IBFunc_Left+78, IBFunc_Top+175);
+                }
+                else
+                    gobang_box_fill(120, 20, IBFunc_Left, IBFunc_Top+175);
+                
+                break;
+            }
+        }
+        //是否先手
+        if (Instr_Array[3]==0)
+        {
+            int instr_ufirst[2][3] = { {1, IBFunc_Left+6, IBFunc_Top+183},
+                                       {0, IBFunc_Left+66, IBFunc_Top+183}};
+            for (i=0; i<2; ++i)
+            {
+                if (gobang_click_circle(radius, instr_ufirst[i][1], instr_ufirst[i][2], posx, posy))
+                {
+                    Instr_Array[4] = instr_ufirst[i][0];
+                    for (j=0; j<2; ++j)
+                    {
+                       gobang_clear_circle(cr, instr_ufirst[j][1], instr_ufirst[j][2]);
+                    }
+                    gobang_draw_circle(dr, instr_ufirst[i][1], instr_ufirst[i][2]);
+                    break;
+                }
+            }
+        }
+        //是否开始游戏
+        int IBStart_Left, IBStart_Top, IBStart_Right, IBStart_Bottom;
+        IBStart_Left=500;IBStart_Top=388;IBStart_Right=570;IBStart_Bottom=416;
+        if (posx>IBStart_Left && posx<IBStart_Right && posy>IBStart_Top && posy<IBStart_Bottom)
+        {
+            Instr_Array[0] = 2; //On game now
+            gobang_instr_ongame_display();
+        }
+    }
+}
+//-------------------------------------------------------------------------
+//return value of gobang_place_piece(), 2-successful, 3-fail, 0-black win, 1-white win
+unsigned int gobang_place_piece(int posx, int posy, unsigned int isWhite)
+{
+    if (Instr_Array[0]!=2)  return 3;   //start only when user click Start Game
+    int ii,jj;
+    int pXc, pYc, pXcc, pYcc;
+    pXc = (posx-BOARD_LEFT_EDGE) / BOARD_HOR_MARGIN;    
+    pXcc = (posx-BOARD_LEFT_EDGE) % BOARD_HOR_MARGIN;
+    pYc = (posy-BOARD_TOP_EDGE) / BOARD_VER_MARGIN;
+    pYcc = (posy-BOARD_TOP_EDGE) % BOARD_VER_MARGIN;
+    if (pXcc > BOARD_HOR_MARGIN/2)
+    {
+        pXc++;
+        pXcc = BOARD_HOR_MARGIN - pXcc;
+    }
+    if (pYcc > BOARD_VER_MARGIN/2)
+    {
+        pYc++;
+        pYcc = BOARD_VER_MARGIN - pYcc;
+    }
+    if (posx<BOARD_LEFT_EDGE && (BOARD_LEFT_EDGE-posx)<BOARD_PIECE_OFFSET)
+    {
+        pXc = 0;
+        pXcc = BOARD_LEFT_EDGE-posx;
+    }
+    if (posy<BOARD_TOP_EDGE && (BOARD_TOP_EDGE-posy)<BOARD_PIECE_OFFSET)
+    {
+        pYc = 0;
+        pYcc = BOARD_TOP_EDGE-posy;
+    }
+    
+    if ((pXcc*pXcc+pYcc*pYcc)>BOARD_PIECE_OFFSET*BOARD_PIECE_OFFSET)    return 3;
+    if (pXc < 0 || pYc < 0 || pXc >= BOARD_CELL_NO || pYc >= BOARD_CELL_NO) return 3;
+    if (Piece_Record[pYc][pXc] != 0)  return 3;
+    
+    if (isWhite == 1)
+    {
+        gobang_draw_circle(BOARD_PIECE_RADIUS, (pXc*BOARD_HOR_MARGIN+BOARD_LEFT_EDGE), (pYc*BOARD_VER_MARGIN+BOARD_TOP_EDGE));
+    }
+    else
+    {
+        gobang_draw_circle(BOARD_PIECE_RADIUS, (pXc*BOARD_HOR_MARGIN+BOARD_LEFT_EDGE), (pYc*BOARD_VER_MARGIN+BOARD_TOP_EDGE));
+        gobang_clear_circle(BOARD_PIECE_RADIUS*5/6, (pXc*BOARD_HOR_MARGIN+BOARD_LEFT_EDGE), (pYc*BOARD_VER_MARGIN+BOARD_TOP_EDGE));
+    }
+    
+    //Start update the piece on board
+    Piece_Record[pYc][pXc] = 1-2*isWhite;
+    
+    ///////////////////////////////////////////////////////////////////
+    //         Start update the state of Horzontal direction         //
+    //////////////////////////////////////////////////////////////////
+    int Series_Start_Point;
+    int Series_End_Point;
+    //left side
+    if (pXc>0 && Piece_Record[pYc][pXc]*Piece_Record[pYc][pXc-1] > 0)
+    {
+        Series_Start_Point = pXc - abs(Piece_Analysis_Record[pYc][pXc-1][0]);
+        Piece_Analysis_Record[pYc][pXc][0] = (1-2*isWhite) + Piece_Analysis_Record[pYc][pXc-1][0];  //how many, 1-black, -1-white
+        Piece_Analysis_Record[pYc][pXc][1] = 1 + Piece_Analysis_Record[pYc][pXc-1][1]; //第几个
+    }
+    else
+    {
+        Series_Start_Point = pXc;
+        Piece_Analysis_Record[pYc][pXc][0] = 1-2*isWhite;  //how many, 1-black, -1-white
+    }
+    //right side
+    if (pXc<BOARD_CELL_NO-1 && Piece_Record[pYc][pXc]*Piece_Record[pYc][pXc+1] > 0)
+    {
+        Series_End_Point = pXc + abs(Piece_Analysis_Record[pYc][pXc+1][0]);
+        Piece_Analysis_Record[pYc][pXc][0] += Piece_Analysis_Record[pYc][pXc+1][0];  //how many, 1-black, -1-white
+    }
+    else
+    {
+        Series_End_Point = pXc;
+    }
+    //decide if the player wins
+    if (abs(Piece_Analysis_Record[pYc][pXc][0]) == 5)
+    {
+        return isWhite;
+    }
+    //update the horizontal state
+    for (ii = Series_Start_Point; ii <= Series_End_Point; ++ii)
+    {
+        Piece_Analysis_Record[pYc][ii][0] = Piece_Analysis_Record[pYc][pXc][0];
+        Piece_Analysis_Record[pYc][ii][1] = ii - Series_Start_Point + 1;
+    }
+    ///////////////////////////////////////////////////////////////////
+    //         Start update the state of Verticle direction          //
+    ///////////////////////////////////////////////////////////////////
+    //top side
+    if (pYc>0 && Piece_Record[pYc][pXc]*Piece_Record[pYc-1][pXc] > 0)
+    {
+        Series_Start_Point = pYc - abs(Piece_Analysis_Record[pYc-1][pXc][2]);
+        Piece_Analysis_Record[pYc][pXc][2] = (1-2*isWhite) + Piece_Analysis_Record[pYc-1][pXc][2];  //how many, 1-black, -1-white
+        Piece_Analysis_Record[pYc][pXc][3] = 1 + Piece_Analysis_Record[pYc-1][pXc][3]; //第几个
+    }
+    else
+    {
+        Series_Start_Point = pYc;
+        Piece_Analysis_Record[pYc][pXc][2] = 1-2*isWhite;  //how many, 1-black, -1-white
+    }
+    //bottom side
+    if (pYc<BOARD_CELL_NO-1 && Piece_Record[pYc][pXc]*Piece_Record[pYc+1][pXc] > 0)
+    {
+        Series_End_Point = pYc + abs(Piece_Analysis_Record[pYc+1][pXc][2]);
+        Piece_Analysis_Record[pYc][pXc][2] += Piece_Analysis_Record[pYc+1][pXc][2];  //how many, 1-black, -1-white
+    }
+    else
+    {
+        Series_End_Point = pYc;
+    }
+    //decide if the player wins
+    if (abs(Piece_Analysis_Record[pYc][pXc][2]) == 5)
+    {
+        return isWhite;
+    }
+    //update the vertical state
+    for (jj = Series_Start_Point; jj <= Series_End_Point; ++jj)
+    {
+        Piece_Analysis_Record[jj][pXc][2] = Piece_Analysis_Record[pYc][pXc][2];
+        Piece_Analysis_Record[jj][pXc][3] = jj - Series_Start_Point + 1;
+    }
+    ///////////////////////////////////////////////////////////////////
+    //         Start update the state of BL-to-TR direction          //
+    ///////////////////////////////////////////////////////////////////
+    int Series_Start_Point2; //verticle start cordinate
+    int Series_Stend_Points; //number of point-series
+    //bottom-left side
+    if (pXc>0 && pYc<BOARD_CELL_NO-1 && Piece_Record[pYc][pXc]*Piece_Record[pYc+1][pXc-1] > 0)
+    {
+        Series_Start_Point = pXc - abs(Piece_Analysis_Record[pYc+1][pXc-1][4]);
+        Series_Start_Point2 = pYc + abs(Piece_Analysis_Record[pYc+1][pXc-1][4]);
+        Piece_Analysis_Record[pYc][pXc][4] = (1-2*isWhite) + Piece_Analysis_Record[pYc+1][pXc-1][4];  //how many, 1-black, -1-white
+        Piece_Analysis_Record[pYc][pXc][5] = 1 + Piece_Analysis_Record[pYc+1][pXc-1][5]; //第几个
+    }
+    else
+    {
+        Series_Start_Point = pXc;
+        Series_Start_Point2 = pYc;
+        Piece_Analysis_Record[pYc][pXc][4] = 1-2*isWhite;  //how many, 1-black, -1-white
+    }
+    //top-right side
+    if (pXc<BOARD_CELL_NO-1 && pYc>0 && Piece_Record[pYc][pXc]*Piece_Record[pYc-1][pXc+1] > 0)
+    {
+        Piece_Analysis_Record[pYc][pXc][4] += Piece_Analysis_Record[pYc-1][pXc+1][4];  //how many, 1-black, -1-white
+    }
+    Series_Stend_Points = abs(Piece_Analysis_Record[pYc][pXc][4]);
+    //decide if the player wins
+    if (Series_Stend_Points == 5)
+    {
+        return isWhite;
+    }
+    //update the BL-to-TR state
+    for (ii = 0; ii < Series_Stend_Points; ++ii)
+    {
+        Piece_Analysis_Record[Series_Start_Point2-ii][Series_Start_Point+ii][4] = Piece_Analysis_Record[pYc][pXc][4];
+        Piece_Analysis_Record[Series_Start_Point2-ii][Series_Start_Point+ii][5] = ii + 1;
+    }
+    ///////////////////////////////////////////////////////////////////
+    //         Start update the state of TL-to-BR direction          //
+    ///////////////////////////////////////////////////////////////////
+//    int Series_Start_Point2; //verticle start cordinate
+//    int Series_Stend_Points; //number of point-series
+    //top-left side
+    if (pXc>0 && pYc>0 && Piece_Record[pYc][pXc]*Piece_Record[pYc-1][pXc-1] > 0)
+    {
+        Series_Start_Point = pXc - abs(Piece_Analysis_Record[pYc-1][pXc-1][6]);
+        Series_Start_Point2 = pYc - abs(Piece_Analysis_Record[pYc-1][pXc-1][6]);
+        Piece_Analysis_Record[pYc][pXc][6] = (1-2*isWhite) + Piece_Analysis_Record[pYc-1][pXc-1][6];  //how many, 1-black, -1-white
+        Piece_Analysis_Record[pYc][pXc][7] = 1 + Piece_Analysis_Record[pYc-1][pXc-1][7]; //第几个
+    }
+    else
+    {
+        Series_Start_Point = pXc;
+        Series_Start_Point2 = pYc;
+        Piece_Analysis_Record[pYc][pXc][6] = 1-2*isWhite;  //how many, 1-black, -1-white
+    }
+    //bottom-right side
+    if (pXc<BOARD_CELL_NO-1 && pYc<BOARD_CELL_NO-1 && Piece_Record[pYc][pXc]*Piece_Record[pYc+1][pXc+1] > 0)
+    {
+        Piece_Analysis_Record[pYc][pXc][6] += Piece_Analysis_Record[pYc+1][pXc+1][6];  //how many, 1-black, -1-white
+    }
+    Series_Stend_Points = abs(Piece_Analysis_Record[pYc][pXc][6]);
+    //decide if the player wins
+    if (Series_Stend_Points == 5)
+    {
+        return isWhite;
+    }
+    //update the TL-to-BR state
+    for (ii = 0; ii < Series_Stend_Points; ++ii)
+    {
+        Piece_Analysis_Record[Series_Start_Point2+ii][Series_Start_Point+ii][6] = Piece_Analysis_Record[pYc][pXc][6];
+        Piece_Analysis_Record[Series_Start_Point2+ii][Series_Start_Point+ii][7] = ii + 1;
+    }
+    
+    ///////////////////////////////////////////////////////////////////
+    //          Start check if the hand-cut problem exists           //
+    /////////////////////////////////////////////////////////////////// 
+    if (Instr_Array[2]==1)
+    {
+        if (gobang_handcut_check(Piece_Analysis_Record, isWhite, pXc, pYc))
+        {
+            return (1-isWhite);
+        }
+    }
+    gobang_instr_ongame_display();
+    return 2;
 }
 //-------------------------------------------------------------------------
 unsigned int gobang_handcut_check(int piece_record[][BOARD_CELL_NO][8], unsigned int isWhiteMode, int posx, int posy)
@@ -585,23 +1046,27 @@ unsigned int gobang_handcut_check(int piece_record[][BOARD_CELL_NO][8], unsigned
     if (hand_cut_three >= 2 || hand_cut_four >= 2 || hand_cut_six >= 1)
     { 
         gobang_draw_circle(BOARD_PIECE_RADIUS/2, (posx*BOARD_HOR_MARGIN+BOARD_LEFT_EDGE), (posy*BOARD_VER_MARGIN+BOARD_TOP_EDGE));
-               
-        gobang_show_text("调试结果：", 480, 150);
-        gobang_show_text("pXc=", 480, 180); gobang_show_num((posx+1), 520, 180);
-        gobang_show_text("pYc=", 540, 180); gobang_show_num((posy+1), 580, 180);
         
-        gobang_show_text("PIECE_RECORD:", 480, 200);
+        Instr_Array[0] = 0;
+        int IBDebug_Left, IBDebug_Top;
+        IBDebug_Left=480; IBDebug_Top=170;
+        gobang_box_fill(120, 275, IBDebug_Left, IBDebug_Top);       
+        gobang_show_text("调试结果：", IBDebug_Left, IBDebug_Top);
+        gobang_show_text("pXc=", IBDebug_Left, IBDebug_Top+25); gobang_show_num((posx+1), IBDebug_Left+40, IBDebug_Top+25);
+        gobang_show_text("pYc=", IBDebug_Left+60, IBDebug_Top+25); gobang_show_num((posy+1), IBDebug_Left+100, IBDebug_Top+25);
+        
+        gobang_show_text("PIECE_RECORD:", IBDebug_Left, IBDebug_Top+45);
 //        int i, j;
         for (i=0; i<4; ++i)
         {
-            gobang_show_num(piece_record[posy][posx][2*i], (480+20*i), 220);
-            gobang_show_num(piece_record[posy][posx][2*i+1], (480+20*i), 240);
+            gobang_show_num(piece_record[posy][posx][2*i], (IBDebug_Left+20*i), IBDebug_Top+65);
+            gobang_show_num(piece_record[posy][posx][2*i+1], (IBDebug_Left+20*i), IBDebug_Top+85);
         }
-        gobang_show_text("***************", 480, 260);
+        gobang_show_text("***************", IBDebug_Left, IBDebug_Top+105);
         for (i=0; i<8; ++i)
             for (j=0; j<6; ++j)
             {
-                gobang_show_num(handcut_record[i][j], (480+20*j), (280+20*i));
+                gobang_show_num(handcut_record[i][j], (IBDebug_Left+20*j), (IBDebug_Top+125+16*i));
             }
         
 //        gobang_show_text("3连=", 480, 290); gobang_show_num(hand_cut_three, 540, 290);
