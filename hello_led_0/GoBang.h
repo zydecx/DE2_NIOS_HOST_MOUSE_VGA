@@ -10,6 +10,11 @@
 #define BOARD_PIECE_RADIUS  12  //棋子半径。注：黑子默认为10-12的环
 #define BOARD_PIECE_OFFSET  10  //半径10内的点击有效
 #define RCLICK_RESTART_THRESHOLD   40  //Threshold for NO. of right-click before game restarts
+#define PIECE_HISTORY_NO    226
+
+//add piece-placing history to this array, 0-pXc, 1-pYc, 2-1/0; 
+//The first row records the size
+int Piece_History[PIECE_HISTORY_NO][3];
 
 int Piece_Record[BOARD_CELL_NO][BOARD_CELL_NO]; 
 //char ASCII8x16_Table[4080];
@@ -28,14 +33,18 @@ int Instr_Array[INSTR_ARRAY_SIZE];
 int Ongame_Array[ONGAME_ARRAY_SIZE];
    
 void reset_piece_record_array();    //reset all arrays
+void reset_game_config_array();
 void clean_screen();            //clean all points on screen
 void gobang_board_display();    //Display gobang board on screen
-void gobang_instr_display();    //display gobang instruction on the right of screen
-void gobang_instr_ongame_display();//display instruction part when players are now playing
+void gobang_instrA_display();    //display gobang instruction on the right of screen
+void gobang_instrB_display();//display instruction part when players are now playing
+void gobang_instrC_display(int);//display instruction part when one play wins
+void gobang_instrD_display(int);//display congratulations when game over
 void gobang_box_fill(int, int, int, int);   //(int width, int height, int posx, int posy), (posx, posy) is the top-left coordinate of box
 void gobang_box_fullfill(int, int, int, int);   //(int width, int height, int posx, int posy), (posx, posy) is the top-left coordinate of box
 void gobang_box_outline(int, int, int, int);//(int width, int height, int posx, int posy), (posx, posy) is the top-left coordinate of the outline
 void gobang_game_start();       //start a game
+void gobang_game_resume();
 void gobang_win_display(unsigned int);      //change screen color and display tiptext when win
 
 void gobang_draw_circle(int, int, int);
@@ -67,8 +76,15 @@ void gobang_show_num(int, int, int);
 
 
 void gobang_read_instr_state(int, int);
-//return value of gobang_place_piece(), 2-successful, 3-fail, 0-black win, 1-white win
-unsigned int gobang_place_piece(int, int, unsigned int);
+//return value of gobang_proc_lclick(), 2-successful, 3-fail, 0-black win, 1-white win
+unsigned int gobang_proc_lclick(int, int);
+void gobang_proc_win(int);
+//return 0 when B wins, 1 when W wins, 2 otherwise
+unsigned int gobang_place_piece(int, int);
 unsigned int gobang_handcut_check(int[][BOARD_CELL_NO][8], unsigned int, int, int);
+//computer generate position of piece,
+//Array to store position and color(0-B, 1-W), current piece color(0-B, 1-W)
+void gobang_ai_algorithm(int[3], int);   
+        
 
 #endif

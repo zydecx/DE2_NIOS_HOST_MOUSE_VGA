@@ -44,7 +44,7 @@ void play_mouse(unsigned int addr)
  unsigned int is_white_mode = 0; //Black Piece(1=1-2*is_white_mode) as default
  unsigned int lclick_no = 0;
  unsigned int rclick_no = 0;    //no. of right click; Reset when left click
- unsigned int win_state = 0;    //change to 1 when player wins a game, so that no more pieces are allowed
+// unsigned int win_state = 0;    //change to 1 when player wins a game, so that no more pieces are allowed
  unsigned int place_piece_status;   //return value of gobang_place_piece(), 2-successful, 3-fail, 0-black win, 1-white win
  
  freq=0x00;
@@ -105,27 +105,14 @@ void play_mouse(unsigned int addr)
   /*if(B==1)
   Vga_Set_Pixel(VGA_0_BASE,pX,pY);*/
   if(B==1){
-//    if (lclick_no==1)   continue; //Forbid continuely placing pieces by keeping left click
+    if (lclick_no==1)   continue; //Forbid continuely placing pieces by keeping left click
     lclick_no = 1;
     rclick_no = 0;  //Reset NO of right-click
     if (pX > INSTR_BORDER)
         gobang_read_instr_state(pX, pY);
-    else if (win_state==0)
+    else /*if (win_state==0)*/
     {
-        place_piece_status = gobang_place_piece(pX, pY, is_white_mode);
-        switch (place_piece_status)    //2-successful, 3-fail, 0-black win, 1-white win
-        {
-            case 2: 
-                is_white_mode = 1 - is_white_mode;   //Set back to the Piece of the other color
-                break;
-            case 3:
-                break;
-            default:
-                win_state = 1;
-                is_white_mode = place_piece_status;
-                gobang_win_display(is_white_mode);
-                break;
-        }
+        place_piece_status = gobang_proc_lclick(pX, pY);
     }
   }
   else if(B==2)
@@ -135,8 +122,8 @@ void play_mouse(unsigned int addr)
     lclick_no = 0;
     if (rclick_no > RCLICK_RESTART_THRESHOLD)
     {
-        win_state = 0;
-        is_white_mode = 0;
+//        win_state = 0;
+//        is_white_mode = 0;
         gobang_game_start();
     }
   }
