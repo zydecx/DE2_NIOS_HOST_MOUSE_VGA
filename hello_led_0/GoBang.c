@@ -143,6 +143,70 @@ void gobang_instrB_display()
     int IBPiece_Left, IBPiece_Top;
     IBPiece_Left=IBCont_Left; IBPiece_Top=125;
     
+    gobang_instrB_ondisplay();
+//    Ongame_Array[2] = 1 - Ongame_Array[2];  //turn to another user
+    
+    int IBFunc_Left, IBFunc_Top;
+    IBFunc_Left=IBCont_Left; IBFunc_Top=IBPiece_Top+100;//200
+    
+    //本局：先手执黑
+    if (Instr_Array[3]==0 && Instr_Array[4]==Ongame_Array[1]%2)
+        gobang_show_text("本局：用户执黑", IBFunc_Left, IBFunc_Top-25);
+    else if (Instr_Array[3]==0 && Instr_Array[4]!=Ongame_Array[1]%2)
+        gobang_show_text("本局：电脑执黑", IBFunc_Left, IBFunc_Top-25);
+    else if (Ongame_Array[1]%2 == 1)
+        gobang_show_text("本局：先手执黑", IBFunc_Left, IBFunc_Top-25);
+    else
+        gobang_show_text("本局：后手执黑", IBFunc_Left, IBFunc_Top-25);
+        
+    //共#局，第#局
+    gobang_show_text("共", IBFunc_Left, IBFunc_Top);
+    gobang_show_num(Ongame_Array[0], IBFunc_Left+16, IBFunc_Top);
+    gobang_show_text("局,", IBFunc_Left+24, IBFunc_Top);
+    gobang_show_text("第", IBFunc_Left+56, IBFunc_Top);
+    gobang_show_num(Ongame_Array[1], IBFunc_Left+72, IBFunc_Top);
+    gobang_show_text("局", IBFunc_Left+80, IBFunc_Top);
+    
+    unsigned char text4[] = "胜负情况：";
+    gobang_show_text(text4, IBFunc_Left, IBFunc_Top+25);
+    if (Instr_Array[3]==0 && Instr_Array[4]==1)
+    {
+        gobang_show_text("用户", IBFunc_Left, IBFunc_Top+50);
+        gobang_show_text("电脑", IBFunc_Left+60, IBFunc_Top+50);
+    }
+    else if (Instr_Array[3]==0 && Instr_Array[4]==0)
+    {
+        gobang_show_text("电脑", IBFunc_Left, IBFunc_Top+50);
+        gobang_show_text("用户", IBFunc_Left+60, IBFunc_Top+50);
+    }
+    else
+    {
+        gobang_show_text("先手", IBFunc_Left, IBFunc_Top+50);
+        gobang_show_text("后手", IBFunc_Left+60, IBFunc_Top+50);
+    }
+    gobang_show_num(Ongame_Array[3], IBFunc_Left+40, IBFunc_Top+50);
+    gobang_show_num(Ongame_Array[4], IBFunc_Left+100, IBFunc_Top+50);
+    
+    int IBPlay_Width, IBPlay_Height, IBPlay_Left, IBPlay_Top;
+    unsigned char text5[] = "请求悔棋";
+    IBPlay_Width=80; IBPlay_Height=35; IBPlay_Left=IBFunc_Left+15; IBPlay_Top=345;
+    gobang_box_fullfill(IBPlay_Width, IBPlay_Height, IBPlay_Left, IBPlay_Top);
+    gobang_box_fill(70, IBPlay_Height*4/5, IBPlay_Left+5, IBPlay_Top+3);
+    gobang_box_outline(IBPlay_Width, IBPlay_Height, IBPlay_Left, IBPlay_Top); 
+    gobang_show_text(text5, IBPlay_Left+8, IBPlay_Top+8);
+    
+    unsigned char text6[] = "重新开始";
+    IBPlay_Width=80; IBPlay_Height=35; IBPlay_Left=IBCont_Left+15; IBPlay_Top=385;
+    gobang_box_fullfill(IBPlay_Width, IBPlay_Height, IBPlay_Left, IBPlay_Top);
+    gobang_box_fill(70, IBPlay_Height*4/5, IBPlay_Left+5, IBPlay_Top+3);
+    gobang_box_outline(IBPlay_Width, IBPlay_Height, IBPlay_Left, IBPlay_Top); 
+    gobang_show_text(text6, IBPlay_Left+8, IBPlay_Top+8);
+}
+//-------------------------------------------------------------------------
+void gobang_instrB_ondisplay()
+{
+    int IBox_Width, IBCont_Left, IBPiece_Left, IBPiece_Top;
+    IBox_Width=130;IBCont_Left=480;IBPiece_Left=IBCont_Left; IBPiece_Top=125;
     //显示棋子，代表当前由谁执棋
     unsigned char text1[]="黑棋执子";
     unsigned char text2[]="白棋执子";
@@ -165,41 +229,6 @@ void gobang_instrB_display()
         ++i;
     }
     while(((BOARD_PIECE_RADIUS+2)*2*i<IBox_Width));
-//    Ongame_Array[2] = 1 - Ongame_Array[2];  //turn to another user
-    
-    int IBFunc_Left, IBFunc_Top;
-    IBFunc_Left=IBCont_Left; IBFunc_Top=IBPiece_Top+75;//200
-    
-    //共#局，第#局
-    gobang_show_text("共", IBFunc_Left, IBFunc_Top);
-    gobang_show_num(Ongame_Array[0], IBFunc_Left+16, IBFunc_Top);
-    gobang_show_text("局,", IBFunc_Left+24, IBFunc_Top);
-    gobang_show_text("第", IBFunc_Left+56, IBFunc_Top);
-    gobang_show_num(Ongame_Array[1], IBFunc_Left+72, IBFunc_Top);
-    gobang_show_text("局", IBFunc_Left+80, IBFunc_Top);
-    
-    
-    unsigned char text4[] = "胜负情况：";
-    gobang_show_text(text4, IBFunc_Left, IBFunc_Top+25);
-    gobang_show_text("黑方", IBFunc_Left, IBFunc_Top+50);
-    gobang_show_num(Ongame_Array[3], IBFunc_Left+40, IBFunc_Top+50);
-    gobang_show_text("白方", IBFunc_Left+60, IBFunc_Top+50);
-    gobang_show_num(Ongame_Array[4], IBFunc_Left+100, IBFunc_Top+50);
-    
-    int IBPlay_Width, IBPlay_Height, IBPlay_Left, IBPlay_Top;
-    unsigned char text5[] = "请求悔棋";
-    IBPlay_Width=80; IBPlay_Height=35; IBPlay_Left=IBFunc_Left+15; IBPlay_Top=345;
-    gobang_box_fullfill(IBPlay_Width, IBPlay_Height, IBPlay_Left, IBPlay_Top);
-    gobang_box_fill(70, IBPlay_Height*4/5, IBPlay_Left+5, IBPlay_Top+3);
-    gobang_box_outline(IBPlay_Width, IBPlay_Height, IBPlay_Left, IBPlay_Top); 
-    gobang_show_text(text5, IBPlay_Left+8, IBPlay_Top+8);
-    
-    unsigned char text6[] = "重新开始";
-    IBPlay_Width=80; IBPlay_Height=35; IBPlay_Left=IBCont_Left+15; IBPlay_Top=385;
-    gobang_box_fullfill(IBPlay_Width, IBPlay_Height, IBPlay_Left, IBPlay_Top);
-    gobang_box_fill(70, IBPlay_Height*4/5, IBPlay_Left+5, IBPlay_Top+3);
-    gobang_box_outline(IBPlay_Width, IBPlay_Height, IBPlay_Left, IBPlay_Top); 
-    gobang_show_text(text6, IBPlay_Left+8, IBPlay_Top+8);
 }
 //-------------------------------------------------------------------------
 void gobang_instrC_display(int winner)
@@ -252,7 +281,17 @@ void gobang_instrC_display(int winner)
     while(((BOARD_PIECE_RADIUS+2)*2*i<IBox_Width));
     
     int IBFunc_Left, IBFunc_Top;
-    IBFunc_Left=IBCont_Left; IBFunc_Top=IBPiece_Top+75;//200
+    IBFunc_Left=IBCont_Left; IBFunc_Top=IBPiece_Top+100;//200
+    
+    //本局：先手执黑
+    if (Instr_Array[3]==0 && Instr_Array[4]==Ongame_Array[1]%2)
+        gobang_show_text("本局：用户执黑", IBFunc_Left, IBFunc_Top-25);
+    else if (Instr_Array[3]==0 && Instr_Array[4]!=Ongame_Array[1]%2)
+        gobang_show_text("本局：电脑执黑", IBFunc_Left, IBFunc_Top-25);
+    else if (Ongame_Array[1]%2 == 1)
+        gobang_show_text("本局：先手执黑", IBFunc_Left, IBFunc_Top-25);
+    else
+        gobang_show_text("本局：后手执黑", IBFunc_Left, IBFunc_Top-25);
     
     //共#局，第#局
     gobang_show_text("共", IBFunc_Left, IBFunc_Top);
@@ -265,9 +304,22 @@ void gobang_instrC_display(int winner)
     
     unsigned char text4[] = "胜负情况：";
     gobang_show_text(text4, IBFunc_Left, IBFunc_Top+25);
-    gobang_show_text("黑方", IBFunc_Left, IBFunc_Top+50);
+    if (Instr_Array[3]==0 && Instr_Array[4]==1)
+    {
+        gobang_show_text("用户", IBFunc_Left, IBFunc_Top+50);
+        gobang_show_text("电脑", IBFunc_Left+60, IBFunc_Top+50);
+    }
+    else if (Instr_Array[3]==0 && Instr_Array[4]==0)
+    {
+        gobang_show_text("电脑", IBFunc_Left, IBFunc_Top+50);
+        gobang_show_text("用户", IBFunc_Left+60, IBFunc_Top+50);
+    }
+    else
+    {
+        gobang_show_text("先手", IBFunc_Left, IBFunc_Top+50);
+        gobang_show_text("后手", IBFunc_Left+60, IBFunc_Top+50);
+    }
     gobang_show_num(Ongame_Array[3], IBFunc_Left+40, IBFunc_Top+50);
-    gobang_show_text("白方", IBFunc_Left+60, IBFunc_Top+50);
     gobang_show_num(Ongame_Array[4], IBFunc_Left+100, IBFunc_Top+50);
     
     int IBPlay_Width, IBPlay_Height, IBPlay_Left, IBPlay_Top;
@@ -293,7 +345,7 @@ void gobang_instrC_display(int winner)
     gobang_show_text(text6, IBPlay_Left+8, IBPlay_Top+8);
 }
 //-------------------------------------------------------------------------
-void gobang_instrD_display(int winner)
+void gobang_instrD_display(int winner)  //winner:0-先手;1-后手
 {
     Instr_Array[0] = 4; //Game Over
     
@@ -340,8 +392,8 @@ void gobang_instrD_display(int winner)
     gobang_box_fill(WinMsg_Width, WinMsg_Height, WinMsg_Left, WinMsg_Top);
     gobang_box_outline(WinMsg_Width, WinMsg_Height, WinMsg_Left, WinMsg_Top);
     unsigned char textWin1[] = "********恭喜********";
-    unsigned char textWin2[] = "******白方获胜******";
-    unsigned char textWin3[] = "******黑方获胜******";
+    unsigned char textWin2[] = "******后手获胜******";
+    unsigned char textWin3[] = "******先手获胜******";
     unsigned char textWin4[] = "***您赢了这轮比赛***";
     unsigned char textWin5[] = "*******很遗憾*******";
     unsigned char textWin6[] = "*****您未能获胜*****";
@@ -380,9 +432,22 @@ void gobang_instrD_display(int winner)
     
     unsigned char text4[] = "胜负情况：";
     gobang_show_text(text4, IBFunc_Left, IBFunc_Top+25);
-    gobang_show_text("黑方", IBFunc_Left, IBFunc_Top+50);
+    if (Instr_Array[3]==0 && Instr_Array[4]==1)
+    {
+        gobang_show_text("用户", IBFunc_Left, IBFunc_Top+50);
+        gobang_show_text("电脑", IBFunc_Left+60, IBFunc_Top+50);
+    }
+    else if (Instr_Array[3]==0 && Instr_Array[4]==0)
+    {
+        gobang_show_text("电脑", IBFunc_Left, IBFunc_Top+50);
+        gobang_show_text("用户", IBFunc_Left+60, IBFunc_Top+50);
+    }
+    else
+    {
+        gobang_show_text("先手", IBFunc_Left, IBFunc_Top+50);
+        gobang_show_text("后手", IBFunc_Left+60, IBFunc_Top+50);
+    }
     gobang_show_num(Ongame_Array[3], IBFunc_Left+40, IBFunc_Top+50);
-    gobang_show_text("白方", IBFunc_Left+60, IBFunc_Top+50);
     gobang_show_num(Ongame_Array[4], IBFunc_Left+100, IBFunc_Top+50);
     
     unsigned char text5[] = "^恭喜^恭喜^";
@@ -476,7 +541,8 @@ void gobang_game_start()
 void gobang_game_resume()
 {
     Ongame_Array[1]++;  //current round(1 default)
-    Ongame_Array[2] = 1 - Ongame_Array[2];
+    Ongame_Array[2] = 0;
+    Piece_History[0][1] = 0;Piece_History[0][2] = 0;    //return from replay function
     if (Ongame_Array[1]>Ongame_Array[0])
     {
         Ongame_Array[1]--;
@@ -491,7 +557,7 @@ void gobang_game_resume()
         gobang_board_display(); 
         gobang_instrB_display();
         
-        if (Instr_Array[3]==0 && Instr_Array[4]==Ongame_Array[2]) //Peer-to-PC 
+        if (Instr_Array[3]==0 && Instr_Array[4]!=(Ongame_Array[1]%2)) //Peer-to-PC 
         {
             int CPiece[3];
             gobang_ai_algorithm(CPiece, Ongame_Array[2]);   //computer generate position of piece,
@@ -551,6 +617,18 @@ unsigned int gobang_click_circle(int radius, int centerx, int centery, int posx,
         return 1;
      else
         return 0;
+}
+void gobang_draw_piece(int pXc, int pYc, int isWhite)
+{
+    if (isWhite == 1)
+    {
+        gobang_draw_circle(BOARD_PIECE_RADIUS, (pXc*BOARD_HOR_MARGIN+BOARD_LEFT_EDGE), (pYc*BOARD_VER_MARGIN+BOARD_TOP_EDGE));
+    }
+    else
+    {
+        gobang_draw_circle(BOARD_PIECE_RADIUS, (pXc*BOARD_HOR_MARGIN+BOARD_LEFT_EDGE), (pYc*BOARD_VER_MARGIN+BOARD_TOP_EDGE));
+        gobang_clear_circle(BOARD_PIECE_RADIUS*5/6, (pXc*BOARD_HOR_MARGIN+BOARD_LEFT_EDGE), (pYc*BOARD_VER_MARGIN+BOARD_TOP_EDGE));
+    }
 }
 //-------------------------------------------------------------------------
 void gobang_show_char(unsigned char* charac, int isASC, int posx, int posy)
@@ -818,10 +896,28 @@ void gobang_read_instr_state(int posx, int posy)
     {
         //是否悔棋
         int IBStart_Left, IBStart_Top, IBStart_Right, IBStart_Bottom;
-        IBStart_Left=500;IBStart_Top=348;IBStart_Right=570;IBStart_Bottom=376;
-        if (posx>IBStart_Left && posx<IBStart_Right && posy>IBStart_Top && posy<IBStart_Bottom)
+        if (Ongame_Array[5]==0)
         {
-            gobang_game_start();//悔棋处理函数
+            IBStart_Left=500;IBStart_Top=348;IBStart_Right=570;IBStart_Bottom=376;
+            if (posx>IBStart_Left && posx<IBStart_Right && posy>IBStart_Top && posy<IBStart_Bottom)
+            {
+                gobang_roll_back();//悔棋处理函数
+            }
+        }
+        else
+        {
+            IBStart_Left=483;IBStart_Top=325;IBStart_Right=517;IBStart_Bottom=353;
+            if (posx>IBStart_Left && posx<IBStart_Right && posy>IBStart_Top && posy<IBStart_Bottom)
+            {
+                Ongame_Array[5] = 2;    //同意
+                gobang_roll_back();//悔棋处理函数
+            }
+            IBStart_Left=540;IBStart_Top=325;IBStart_Right=574;IBStart_Bottom=353;
+            if (posx>IBStart_Left && posx<IBStart_Right && posy>IBStart_Top && posy<IBStart_Bottom)
+            {
+                Ongame_Array[5] = 3;    //不同意
+                gobang_roll_back();//悔棋处理函数
+            }
         }
         //是否退出游戏
         IBStart_Left=500;IBStart_Top=388;IBStart_Right=570;IBStart_Bottom=416;
@@ -837,7 +933,7 @@ void gobang_read_instr_state(int posx, int posy)
         IBStart_Left=500;IBStart_Top=308;IBStart_Right=570;IBStart_Bottom=336;
         if (posx>IBStart_Left && posx<IBStart_Right && posy>IBStart_Top && posy<IBStart_Bottom)
         {
-            gobang_game_start();//回放棋局处理函数
+            gobang_replay_game();//回放棋局处理函数
         }
         //是否继续游戏
         IBStart_Left=500;IBStart_Top=348;IBStart_Right=570;IBStart_Bottom=376;
@@ -860,6 +956,106 @@ void gobang_read_instr_state(int posx, int posy)
         if (posx>IBStart_Left && posx<IBStart_Right && posy>IBStart_Top && posy<IBStart_Bottom)
         {
             gobang_game_start();
+        }
+    }
+}
+//-------------------------------------------------------------------------
+void gobang_roll_back()    //悔棋处理函数
+{
+    int IBPlay_Width, IBPlay_Height, IBPlay_Left, IBPlay_Top;
+    if (Instr_Array[3] == 1 && Ongame_Array[5] == 0)
+    {
+        Ongame_Array[5] = 1;
+        IBPlay_Width=40; IBPlay_Height=35; IBPlay_Left=480; IBPlay_Top=305;
+        gobang_box_fill(120, 75, IBPlay_Left, IBPlay_Top);
+        unsigned char text1[] = "对手请求悔棋？";
+        gobang_show_text(text1, IBPlay_Left, IBPlay_Top);
+        
+        gobang_box_fullfill(IBPlay_Width, IBPlay_Height, IBPlay_Left, IBPlay_Top+20);
+        gobang_box_fill(34, IBPlay_Height*4/5, IBPlay_Left+3, IBPlay_Top+23);
+        gobang_box_outline(IBPlay_Width, IBPlay_Height, IBPlay_Left, IBPlay_Top+20); 
+        gobang_show_text("同意", IBPlay_Left+4, IBPlay_Top+28);
+        gobang_box_fullfill(IBPlay_Width, IBPlay_Height, IBPlay_Left+60, IBPlay_Top+20);
+        gobang_box_fill(34, IBPlay_Height*4/5, IBPlay_Left+63, IBPlay_Top+23);
+        gobang_box_outline(IBPlay_Width, IBPlay_Height, IBPlay_Left+60, IBPlay_Top+20); 
+        gobang_show_text("拒绝", IBPlay_Left+64, IBPlay_Top+28);
+        return;
+    }
+    else  //其他模式
+    {
+        IBPlay_Left=480; IBPlay_Top=305;
+        gobang_box_fill(120, 75, IBPlay_Left, IBPlay_Top);
+        unsigned char text2[] = "请求悔棋";
+        IBPlay_Width=80; IBPlay_Height=35; IBPlay_Left=480+15; IBPlay_Top=345;
+        gobang_box_fullfill(IBPlay_Width, IBPlay_Height, IBPlay_Left, IBPlay_Top);
+        gobang_box_fill(70, IBPlay_Height*4/5, IBPlay_Left+5, IBPlay_Top+3);
+        gobang_box_outline(IBPlay_Width, IBPlay_Height, IBPlay_Left, IBPlay_Top); 
+        gobang_show_text(text2, IBPlay_Left+8, IBPlay_Top+8);
+    }
+    
+    //对方不同意，或悔棋范围越界
+    if ((Instr_Array[3]==1 && Ongame_Array[5]==3) || ((Piece_History[0][0]-2)<0))
+    {
+        Ongame_Array[5] = 0;
+        return;
+    }
+    //人机模式或人人模式下对方已同意
+    gobang_box_fill(474, 480, 0, 0);
+    gobang_board_display();
+    
+    int phis_size = Piece_History[0][0] - 2;
+    int i, j;
+    int phis[PIECE_HISTORY_NO][3];
+    for (i=0; i<=phis_size; ++i)
+        for (j=0; j<3; ++j)
+            phis[i][j] = Piece_History[i][j];
+    reset_piece_record_array();
+    
+    if (phis_size==0)
+    {
+        gobang_instrB_ondisplay();
+    }
+    else
+    {
+        for (i=1; i<=phis_size; ++i)
+        {
+            Ongame_Array[2] = phis[i][2];
+            gobang_place_piece(phis[i][0], phis[i][1]);
+        }
+    }
+    Ongame_Array[5] = 0;
+}
+//-------------------------------------------------------------------------
+void gobang_replay_game()  //回放处理函数 
+{
+    int IBFunc_Left, IBPlay_Width, IBPlay_Height, IBPlay_Left, IBPlay_Top;
+    IBFunc_Left=480;IBPlay_Width=80;IBPlay_Height=35;IBPlay_Left=IBFunc_Left+15;IBPlay_Top=305;
+    if (Piece_History[0][1] == 0)   //operate this function for the first time
+    {
+        Piece_History[0][1] = 1;    //set to replay state
+        Piece_History[0][2]++;
+        
+        gobang_box_fill(70, IBPlay_Height*4/5, IBPlay_Left+5, IBPlay_Top+3);
+        gobang_show_text(" 下一步", IBPlay_Left+8, IBPlay_Top+8);
+        
+//        clean_screen();
+//        gobang_box_fill((INSTR_BORDER-1), (BOARD_VER_MARGIN-5), 0, 0);
+        gobang_box_fill(474, 480, 0, 0);
+        gobang_board_display();
+        
+        gobang_draw_piece(Piece_History[Piece_History[0][2]][0], Piece_History[Piece_History[0][2]][1], Piece_History[Piece_History[0][2]][2]);
+    }
+    else
+    {
+        Piece_History[0][2]++;
+        gobang_draw_piece(Piece_History[Piece_History[0][2]][0], Piece_History[Piece_History[0][2]][1], Piece_History[Piece_History[0][2]][2]);
+        
+        if (Piece_History[0][2]>=Piece_History[0][0])
+        {
+            gobang_box_fill(70, IBPlay_Height*4/5, IBPlay_Left+5, IBPlay_Top+3);
+            gobang_show_text("棋局回放", IBPlay_Left+8, IBPlay_Top+8);
+            Piece_History[0][1] = 0;    //reset state
+            Piece_History[0][2] = 0;
         }
     }
 }
@@ -889,15 +1085,16 @@ unsigned int gobang_place_piece(int pXc, int pYc)
     Piece_History[Piece_History[0][0]][1] = pYc;
     Piece_History[Piece_History[0][0]][2] = isWhite;
     
-    if (isWhite == 1)
-    {
-        gobang_draw_circle(BOARD_PIECE_RADIUS, (pXc*BOARD_HOR_MARGIN+BOARD_LEFT_EDGE), (pYc*BOARD_VER_MARGIN+BOARD_TOP_EDGE));
-    }
-    else
-    {
-        gobang_draw_circle(BOARD_PIECE_RADIUS, (pXc*BOARD_HOR_MARGIN+BOARD_LEFT_EDGE), (pYc*BOARD_VER_MARGIN+BOARD_TOP_EDGE));
-        gobang_clear_circle(BOARD_PIECE_RADIUS*5/6, (pXc*BOARD_HOR_MARGIN+BOARD_LEFT_EDGE), (pYc*BOARD_VER_MARGIN+BOARD_TOP_EDGE));
-    }
+    gobang_draw_piece(pXc, pYc, isWhite);
+//    if (isWhite == 1)
+//    {
+//        gobang_draw_circle(BOARD_PIECE_RADIUS, (pXc*BOARD_HOR_MARGIN+BOARD_LEFT_EDGE), (pYc*BOARD_VER_MARGIN+BOARD_TOP_EDGE));
+//    }
+//    else
+//    {
+//        gobang_draw_circle(BOARD_PIECE_RADIUS, (pXc*BOARD_HOR_MARGIN+BOARD_LEFT_EDGE), (pYc*BOARD_VER_MARGIN+BOARD_TOP_EDGE));
+//        gobang_clear_circle(BOARD_PIECE_RADIUS*5/6, (pXc*BOARD_HOR_MARGIN+BOARD_LEFT_EDGE), (pYc*BOARD_VER_MARGIN+BOARD_TOP_EDGE));
+//    }
     
     //Start update the piece on board
     Piece_Record[pYc][pXc] = 1-2*isWhite;
@@ -931,6 +1128,10 @@ unsigned int gobang_place_piece(int pXc, int pYc)
     }
     //decide if the player wins
     if (abs(Piece_Analysis_Record[pYc][pXc][0]) == 5)
+    {
+        return isWhite;
+    }
+    if (abs(Piece_Analysis_Record[pYc][pXc][0])>5 && Instr_Array[2]==0)
     {
         return isWhite;
     }
@@ -970,6 +1171,10 @@ unsigned int gobang_place_piece(int pXc, int pYc)
     {
         return isWhite;
     }
+    if (abs(Piece_Analysis_Record[pYc][pXc][2])>5 && Instr_Array[2]==0)
+    {
+        return isWhite;
+    }
     //update the vertical state
     for (jj = Series_Start_Point; jj <= Series_End_Point; ++jj)
     {
@@ -1003,6 +1208,10 @@ unsigned int gobang_place_piece(int pXc, int pYc)
     Series_Stend_Points = abs(Piece_Analysis_Record[pYc][pXc][4]);
     //decide if the player wins
     if (Series_Stend_Points == 5)
+    {
+        return isWhite;
+    }
+    if (Series_Stend_Points>5 && Instr_Array[2]==0)
     {
         return isWhite;
     }
@@ -1042,6 +1251,10 @@ unsigned int gobang_place_piece(int pXc, int pYc)
     {
         return isWhite;
     }
+    if (Series_Stend_Points>5 && Instr_Array[2]==0)
+    {
+        return isWhite;
+    }
     //update the TL-to-BR state
     for (ii = 0; ii < Series_Stend_Points; ++ii)
     {
@@ -1052,7 +1265,7 @@ unsigned int gobang_place_piece(int pXc, int pYc)
     ///////////////////////////////////////////////////////////////////
     //          Start check if the hand-cut problem exists           //
     /////////////////////////////////////////////////////////////////// 
-    if (Instr_Array[2]==1)
+    if (Instr_Array[2]==1 && Ongame_Array[5]==0)
     {
         if (gobang_handcut_check(Piece_Analysis_Record, isWhite, pXc, pYc))
         {
@@ -1061,13 +1274,16 @@ unsigned int gobang_place_piece(int pXc, int pYc)
     }
     
     Ongame_Array[2] = 1 - Ongame_Array[2];
-    gobang_instrB_display();    //refresh instruction part
+    gobang_instrB_ondisplay();    //refresh instruction part
     return 2;
 }
 //-------------------------------------------------------------------------
 void gobang_proc_win(int winner)
 {
-    Ongame_Array[3+winner]++;   //胜场加1
+    if (Ongame_Array[1]%2!=winner)  //先手获胜
+        Ongame_Array[3]++;   //胜场加1
+    else
+        Ongame_Array[4]++;
     gobang_instrC_display(winner);
 }
 //-------------------------------------------------------------------------
@@ -1104,6 +1320,7 @@ unsigned int gobang_proc_lclick(int posx, int posy)
     if ((pXcc*pXcc+pYcc*pYcc)>BOARD_PIECE_OFFSET*BOARD_PIECE_OFFSET)    return 3;
     if (pXc < 0 || pYc < 0 || pXc >= BOARD_CELL_NO || pYc >= BOARD_CELL_NO) return 3;
     if (Piece_Record[pYc][pXc] != 0)  return 3;
+    
     //return 0 when B wins, 1 when W wins, 2 otherwise
     int game_status = gobang_place_piece(pXc, pYc);
     if (game_status==2 && Instr_Array[3]==0) //Peer-to-PC
@@ -1130,7 +1347,7 @@ unsigned int gobang_proc_lclick(int posx, int posy)
     return game_status;
 }
 //-------------------------------------------------------------------------
-unsigned int gobang_handcut_check(int piece_record[][BOARD_CELL_NO][8], unsigned int isWhiteMode, int pXc, int pYc)
+unsigned int gobang_handcut_check(int alys_recrd[][BOARD_CELL_NO][8], unsigned int isWhiteMode, int pXc, int pYc)
 {
     if (isWhiteMode)    return 0;
     
@@ -1148,60 +1365,60 @@ unsigned int gobang_handcut_check(int piece_record[][BOARD_CELL_NO][8], unsigned
     //         Start check hand-cut of horizontal direction          //
     ///////////////////////////////////////////////////////////////////
     //1-"***"
-    if (piece_record[pYc][pXc][0] == 3)
+    if (alys_recrd[pYc][pXc][0]==3 )
     {
         handcut_record[0][0]++;
         handcut_record[1][0] = -1;
         hand_cut_three++;
     }
     //2-"** *"
-    piece_next = pXc - piece_record[pYc][pXc][1] - 1;
-    if (piece_next>=0 && piece_record[pYc][pXc][0]*piece_record[pYc][piece_next][0] == 2 )
+    piece_next = pXc - alys_recrd[pYc][pXc][1] - 1;
+    if (piece_next>=0 && alys_recrd[pYc][pXc][0]*alys_recrd[pYc][piece_next][0] == 2 )
     {
         handcut_record[0][1]++;
         hand_cut_three++;
     }
-    piece_next = pXc + piece_record[pYc][pXc][0] - piece_record[pYc][pXc][1] + 2;
-    if (piece_next<BOARD_CELL_NO && piece_record[pYc][pXc][0]*piece_record[pYc][piece_next][0] == 2 )
+    piece_next = pXc + alys_recrd[pYc][pXc][0] - alys_recrd[pYc][pXc][1] + 2;
+    if (piece_next<BOARD_CELL_NO && alys_recrd[pYc][pXc][0]*alys_recrd[pYc][piece_next][0] == 2 )
     {
         handcut_record[1][1]++;
         hand_cut_three++;
     }
     //3-"****"
-    if (piece_record[pYc][pXc][0] == 4)
+    if (alys_recrd[pYc][pXc][0] == 4)
     {
         handcut_record[0][2]++;
         handcut_record[1][2] = -1;
         hand_cut_four++;
     }
     //4-"*** *"
-    piece_next = pXc - piece_record[pYc][pXc][1] - 1;
-    if (piece_next>=0 && piece_record[pYc][pXc][0]*piece_record[pYc][piece_next][0] == 3 )
+    piece_next = pXc - alys_recrd[pYc][pXc][1] - 1;
+    if (piece_next>=0 && alys_recrd[pYc][pXc][0]*alys_recrd[pYc][piece_next][0] == 3 )
     {
         handcut_record[0][3]++;
         hand_cut_four++;
     }
-    piece_next = pXc + piece_record[pYc][pXc][0] - piece_record[pYc][pXc][1] + 2;
-    if (piece_next<BOARD_CELL_NO && piece_record[pYc][pXc][0]*piece_record[pYc][piece_next][0] == 3 )
+    piece_next = pXc + alys_recrd[pYc][pXc][0] - alys_recrd[pYc][pXc][1] + 2;
+    if (piece_next<BOARD_CELL_NO && alys_recrd[pYc][pXc][0]*alys_recrd[pYc][piece_next][0] == 3 )
     {
         handcut_record[1][3]++;
         hand_cut_four++;
     }
     //5-"** **"
-    piece_next = pXc - piece_record[pYc][pXc][1] - 1;
-    if (piece_next>=0 && piece_record[pYc][pXc][0] == 2 && piece_record[pYc][piece_next][0] == 2 )
+    piece_next = pXc - alys_recrd[pYc][pXc][1] - 1;
+    if (piece_next>=0 && alys_recrd[pYc][pXc][0] == 2 && alys_recrd[pYc][piece_next][0] == 2 )
     {
         handcut_record[0][4]++;
         hand_cut_four++;
     }
-    piece_next = pXc + piece_record[pYc][pXc][0] - piece_record[pYc][pXc][1] + 2;
-    if (piece_next<BOARD_CELL_NO && piece_record[pYc][pXc][0] == 2 && piece_record[pYc][piece_next][0] == 2 )
+    piece_next = pXc + alys_recrd[pYc][pXc][0] - alys_recrd[pYc][pXc][1] + 2;
+    if (piece_next<BOARD_CELL_NO && alys_recrd[pYc][pXc][0] == 2 && alys_recrd[pYc][piece_next][0] == 2 )
     {
         handcut_record[1][4]++;
         hand_cut_four++;
     }
     //6-"***...***"
-    if (piece_record[pYc][pXc][0] > 5)
+    if (alys_recrd[pYc][pXc][0] > 5)
     {
         handcut_record[0][5]++;
         handcut_record[1][5] = -1;
@@ -1211,60 +1428,60 @@ unsigned int gobang_handcut_check(int piece_record[][BOARD_CELL_NO][8], unsigned
     //         Start check hand-cut of verticle direction           //
     ///////////////////////////////////////////////////////////////////
     //1-"***"
-    if (piece_record[pYc][pXc][2] == 3)
+    if (alys_recrd[pYc][pXc][2] == 3)
     {
         handcut_record[2][0]++;
         handcut_record[3][0] = -1;
         hand_cut_three++;
     }
     //2-"** *"
-    piece_next = pYc - piece_record[pYc][pXc][3] - 1;
-    if (piece_next>=0 && piece_record[pYc][pXc][2]*piece_record[piece_next][pXc][2] == 2 )
+    piece_next = pYc - alys_recrd[pYc][pXc][3] - 1;
+    if (piece_next>=0 && alys_recrd[pYc][pXc][2]*alys_recrd[piece_next][pXc][2] == 2 )
     {
         handcut_record[2][1]++;
         hand_cut_three++;
     }
-    piece_next = pYc + piece_record[pYc][pXc][2] - piece_record[pYc][pXc][3] + 2;
-    if (piece_next<BOARD_CELL_NO && piece_record[pYc][pXc][2]*piece_record[piece_next][pXc][2] == 2 )
+    piece_next = pYc + alys_recrd[pYc][pXc][2] - alys_recrd[pYc][pXc][3] + 2;
+    if (piece_next<BOARD_CELL_NO && alys_recrd[pYc][pXc][2]*alys_recrd[piece_next][pXc][2] == 2 )
     {
         handcut_record[3][1]++;
         hand_cut_three++;
     }
     //3-"****"
-    if (piece_record[pYc][pXc][2] == 4)
+    if (alys_recrd[pYc][pXc][2] == 4)
     {
         handcut_record[2][2]++;
         handcut_record[3][2] = -1;
         hand_cut_four++;
     }
     //4-"*** *"
-    piece_next = pYc - piece_record[pYc][pXc][3] - 1;
-    if (piece_next>=0 && piece_record[pYc][pXc][2]*piece_record[piece_next][pXc][2] == 3 )
+    piece_next = pYc - alys_recrd[pYc][pXc][3] - 1;
+    if (piece_next>=0 && alys_recrd[pYc][pXc][2]*alys_recrd[piece_next][pXc][2] == 3 )
     {
         handcut_record[2][3]++;
         hand_cut_four++;
     }
-    piece_next = pYc + piece_record[pYc][pXc][2] - piece_record[pYc][pXc][3] + 2;
-    if (piece_next<BOARD_CELL_NO && piece_record[pYc][pXc][2]*piece_record[piece_next][pXc][2] == 3 )
+    piece_next = pYc + alys_recrd[pYc][pXc][2] - alys_recrd[pYc][pXc][3] + 2;
+    if (piece_next<BOARD_CELL_NO && alys_recrd[pYc][pXc][2]*alys_recrd[piece_next][pXc][2] == 3 )
     {
         handcut_record[3][3]++;
         hand_cut_four++;
     }
     //5-"** **"
-    piece_next = pYc - piece_record[pYc][pXc][3] - 1;
-    if (piece_next>=0 && piece_record[pYc][pXc][2] == 2 && piece_record[piece_next][pXc][2] == 2 )
+    piece_next = pYc - alys_recrd[pYc][pXc][3] - 1;
+    if (piece_next>=0 && alys_recrd[pYc][pXc][2] == 2 && alys_recrd[piece_next][pXc][2] == 2 )
     {
         handcut_record[2][4]++;
         hand_cut_four++;
     }
-    piece_next = pYc + piece_record[pYc][pXc][2] - piece_record[pYc][pXc][3] + 2;
-    if (piece_next<BOARD_CELL_NO && piece_record[pYc][pXc][2] == 2 && piece_record[piece_next][pXc][2] == 2 )
+    piece_next = pYc + alys_recrd[pYc][pXc][2] - alys_recrd[pYc][pXc][3] + 2;
+    if (piece_next<BOARD_CELL_NO && alys_recrd[pYc][pXc][2] == 2 && alys_recrd[piece_next][pXc][2] == 2 )
     {
         handcut_record[3][4]++;
         hand_cut_four++;
     }
     //6-"***...***"
-    if (piece_record[pYc][pXc][2] > 5)
+    if (alys_recrd[pYc][pXc][2] > 5)
     {
         handcut_record[2][5]++;
         handcut_record[3][5] = -1;
@@ -1274,66 +1491,66 @@ unsigned int gobang_handcut_check(int piece_record[][BOARD_CELL_NO][8], unsigned
     //          Start check hand-cut of BL-to-TR direction           //
     ///////////////////////////////////////////////////////////////////
     //1-"***"
-    if (piece_record[pYc][pXc][4] == 3)
+    if (alys_recrd[pYc][pXc][4] == 3)
     {
         handcut_record[4][0]++;
         handcut_record[5][0] = -1;
         hand_cut_three++;
     }
     //2-"** *"
-    piece_next = pXc - piece_record[pYc][pXc][5] - 1;
-    piece_next2 = pYc +  piece_record[pYc][pXc][5] + 1;
-    if (piece_next>=0 && piece_next2<BOARD_CELL_NO && piece_record[pYc][pXc][4]*piece_record[piece_next2][piece_next][4] == 2 )
+    piece_next = pXc - alys_recrd[pYc][pXc][5] - 1;
+    piece_next2 = pYc +  alys_recrd[pYc][pXc][5] + 1;
+    if (piece_next>=0 && piece_next2<BOARD_CELL_NO && alys_recrd[pYc][pXc][4]*alys_recrd[piece_next2][piece_next][4] == 2 )
     {
         handcut_record[4][1]++;
         hand_cut_three++;
     }
-    piece_next = pXc + piece_record[pYc][pXc][4] - piece_record[pYc][pXc][5] + 2;
-    piece_next2 = pYc - piece_record[pYc][pXc][4] + piece_record[pYc][pXc][5] - 2;
-    if (piece_next<BOARD_CELL_NO && piece_next2>=0 && piece_record[pYc][pXc][4]*piece_record[piece_next2][piece_next][4] == 2 )
+    piece_next = pXc + alys_recrd[pYc][pXc][4] - alys_recrd[pYc][pXc][5] + 2;
+    piece_next2 = pYc - alys_recrd[pYc][pXc][4] + alys_recrd[pYc][pXc][5] - 2;
+    if (piece_next<BOARD_CELL_NO && piece_next2>=0 && alys_recrd[pYc][pXc][4]*alys_recrd[piece_next2][piece_next][4] == 2 )
     {
         handcut_record[5][1]++;
         hand_cut_three++;
     }
     //3-"****"
-    if (piece_record[pYc][pXc][4] == 4)
+    if (alys_recrd[pYc][pXc][4] == 4)
     {
         handcut_record[4][2]++;
         handcut_record[5][2] = -1;
         hand_cut_four++;
     }
     //4-"*** *"
-    piece_next = pXc - piece_record[pYc][pXc][5] - 1;
-    piece_next2 = pYc +  piece_record[pYc][pXc][5] + 1;
-    if (piece_next>=0 && piece_next2<BOARD_CELL_NO && piece_record[pYc][pXc][4]*piece_record[piece_next2][piece_next][4] == 3 )
+    piece_next = pXc - alys_recrd[pYc][pXc][5] - 1;
+    piece_next2 = pYc +  alys_recrd[pYc][pXc][5] + 1;
+    if (piece_next>=0 && piece_next2<BOARD_CELL_NO && alys_recrd[pYc][pXc][4]*alys_recrd[piece_next2][piece_next][4] == 3 )
     {
         handcut_record[4][3]++;
         hand_cut_four++;
     }
-    piece_next = pXc + piece_record[pYc][pXc][4] - piece_record[pYc][pXc][5] + 2;
-    piece_next2 = pYc - piece_record[pYc][pXc][4] + piece_record[pYc][pXc][5] - 2;
-    if (piece_next<BOARD_CELL_NO && piece_next2>=0 && piece_record[pYc][pXc][4]*piece_record[piece_next2][piece_next][4] == 3 )
+    piece_next = pXc + alys_recrd[pYc][pXc][4] - alys_recrd[pYc][pXc][5] + 2;
+    piece_next2 = pYc - alys_recrd[pYc][pXc][4] + alys_recrd[pYc][pXc][5] - 2;
+    if (piece_next<BOARD_CELL_NO && piece_next2>=0 && alys_recrd[pYc][pXc][4]*alys_recrd[piece_next2][piece_next][4] == 3 )
     {
         handcut_record[5][3]++;
         hand_cut_four++;
     }
     //5-"** **"
-    piece_next = pXc - piece_record[pYc][pXc][5] - 1;
-    piece_next2 = pYc +  piece_record[pYc][pXc][5] + 1;
-    if (piece_next>=0 && piece_next2<BOARD_CELL_NO && piece_record[pYc][pXc][4]==2 && piece_record[piece_next2][piece_next][4] == 2 )
+    piece_next = pXc - alys_recrd[pYc][pXc][5] - 1;
+    piece_next2 = pYc +  alys_recrd[pYc][pXc][5] + 1;
+    if (piece_next>=0 && piece_next2<BOARD_CELL_NO && alys_recrd[pYc][pXc][4]==2 && alys_recrd[piece_next2][piece_next][4] == 2 )
     {
         handcut_record[4][4]++;
         hand_cut_four++;
     }
-    piece_next = pXc + piece_record[pYc][pXc][4] - piece_record[pYc][pXc][5] + 2;
-    piece_next2 = pYc - piece_record[pYc][pXc][4] + piece_record[pYc][pXc][5] - 2;
-    if (piece_next<BOARD_CELL_NO && piece_next2>=0 && piece_record[pYc][pXc][4]==2 && piece_record[piece_next2][piece_next][4] == 2 )
+    piece_next = pXc + alys_recrd[pYc][pXc][4] - alys_recrd[pYc][pXc][5] + 2;
+    piece_next2 = pYc - alys_recrd[pYc][pXc][4] + alys_recrd[pYc][pXc][5] - 2;
+    if (piece_next<BOARD_CELL_NO && piece_next2>=0 && alys_recrd[pYc][pXc][4]==2 && alys_recrd[piece_next2][piece_next][4] == 2 )
     {
         handcut_record[5][4]++;
         hand_cut_four++;
     }
     //6-"***...***"
-    if (piece_record[pYc][pXc][4] > 5)
+    if (alys_recrd[pYc][pXc][4] > 5)
     {
         handcut_record[4][5]++;
         handcut_record[5][5] = -1;
@@ -1343,66 +1560,66 @@ unsigned int gobang_handcut_check(int piece_record[][BOARD_CELL_NO][8], unsigned
     //          Start check hand-cut of TL-to-BR direction           //
     ///////////////////////////////////////////////////////////////////
     //1-"***"
-    if (piece_record[pYc][pXc][6] == 3)
+    if (alys_recrd[pYc][pXc][6] == 3)
     {
         handcut_record[6][0]++;
         handcut_record[7][0] = -1;
         hand_cut_three++;
     }
     //2-"** *"
-    piece_next = pXc - piece_record[pYc][pXc][7] - 1;
-    piece_next2 = pYc - piece_record[pYc][pXc][7] - 1;
-    if (piece_next>=0 && piece_next2>=0 && piece_record[pYc][pXc][6]*piece_record[piece_next2][piece_next][6] == 2 )
+    piece_next = pXc - alys_recrd[pYc][pXc][7] - 1;
+    piece_next2 = pYc - alys_recrd[pYc][pXc][7] - 1;
+    if (piece_next>=0 && piece_next2>=0 && alys_recrd[pYc][pXc][6]*alys_recrd[piece_next2][piece_next][6] == 2 )
     {
         handcut_record[6][1]++;
         hand_cut_three++;
     }
-    piece_next = pXc + piece_record[pYc][pXc][6] - piece_record[pYc][pXc][7] + 2;
-    piece_next2 = pYc + piece_record[pYc][pXc][6] - piece_record[pYc][pXc][7] + 2;
-    if (piece_next<BOARD_CELL_NO && piece_next2<BOARD_CELL_NO && piece_record[pYc][pXc][6]*piece_record[piece_next2][piece_next][6] == 2 )
+    piece_next = pXc + alys_recrd[pYc][pXc][6] - alys_recrd[pYc][pXc][7] + 2;
+    piece_next2 = pYc + alys_recrd[pYc][pXc][6] - alys_recrd[pYc][pXc][7] + 2;
+    if (piece_next<BOARD_CELL_NO && piece_next2<BOARD_CELL_NO && alys_recrd[pYc][pXc][6]*alys_recrd[piece_next2][piece_next][6] == 2 )
     {
         handcut_record[7][1]++;
         hand_cut_three++;
     }
     //3-"****"
-    if (piece_record[pYc][pXc][6] == 4)
+    if (alys_recrd[pYc][pXc][6] == 4)
     {
         handcut_record[6][2]++;
         handcut_record[7][2] = -1;
         hand_cut_four++;
     }
     //4-"*** *"
-    piece_next = pXc - piece_record[pYc][pXc][7] - 1;
-    piece_next2 = pYc - piece_record[pYc][pXc][7] - 1;
-    if (piece_next>=0 && piece_next2>=0 && piece_record[pYc][pXc][6]*piece_record[piece_next2][piece_next][6] == 3 )
+    piece_next = pXc - alys_recrd[pYc][pXc][7] - 1;
+    piece_next2 = pYc - alys_recrd[pYc][pXc][7] - 1;
+    if (piece_next>=0 && piece_next2>=0 && alys_recrd[pYc][pXc][6]*alys_recrd[piece_next2][piece_next][6] == 3 )
     {
         handcut_record[6][3]++;
         hand_cut_four++;
     }
-    piece_next = pXc + piece_record[pYc][pXc][6] - piece_record[pYc][pXc][7] + 2;
-    piece_next2 = pYc + piece_record[pYc][pXc][6] - piece_record[pYc][pXc][7] + 2;
-    if (piece_next<BOARD_CELL_NO && piece_next2<BOARD_CELL_NO && piece_record[pYc][pXc][6]*piece_record[piece_next2][piece_next][6] == 3 )
+    piece_next = pXc + alys_recrd[pYc][pXc][6] - alys_recrd[pYc][pXc][7] + 2;
+    piece_next2 = pYc + alys_recrd[pYc][pXc][6] - alys_recrd[pYc][pXc][7] + 2;
+    if (piece_next<BOARD_CELL_NO && piece_next2<BOARD_CELL_NO && alys_recrd[pYc][pXc][6]*alys_recrd[piece_next2][piece_next][6] == 3 )
     {
         handcut_record[7][3]++;
         hand_cut_four++;
     }
     //5-"** **"
-    piece_next = pXc - piece_record[pYc][pXc][7] - 1;
-    piece_next2 = pYc - piece_record[pYc][pXc][7] - 1;
-    if (piece_next>=0 && piece_next2>=0 && piece_record[pYc][pXc][6]==2 && piece_record[piece_next2][piece_next][6] == 2 )
+    piece_next = pXc - alys_recrd[pYc][pXc][7] - 1;
+    piece_next2 = pYc - alys_recrd[pYc][pXc][7] - 1;
+    if (piece_next>=0 && piece_next2>=0 && alys_recrd[pYc][pXc][6]==2 && alys_recrd[piece_next2][piece_next][6] == 2 )
     {
         handcut_record[6][4]++;
         hand_cut_four++;
     }
-    piece_next = pXc + piece_record[pYc][pXc][6] - piece_record[pYc][pXc][7] + 2;
-    piece_next2 = pYc + piece_record[pYc][pXc][6] - piece_record[pYc][pXc][7] + 2;
-    if (piece_next<BOARD_CELL_NO && piece_next2<BOARD_CELL_NO && piece_record[pYc][pXc][6]==2 && piece_record[piece_next2][piece_next][6] == 2 )
+    piece_next = pXc + alys_recrd[pYc][pXc][6] - alys_recrd[pYc][pXc][7] + 2;
+    piece_next2 = pYc + alys_recrd[pYc][pXc][6] - alys_recrd[pYc][pXc][7] + 2;
+    if (piece_next<BOARD_CELL_NO && piece_next2<BOARD_CELL_NO && alys_recrd[pYc][pXc][6]==2 && alys_recrd[piece_next2][piece_next][6] == 2 )
     {
         handcut_record[7][4]++;
         hand_cut_four++;
     }
     //6-"***...***"
-    if (piece_record[pYc][pXc][6] > 5)
+    if (alys_recrd[pYc][pXc][6] > 5)
     {
         handcut_record[6][5]++;
         handcut_record[7][5] = -1;
@@ -1421,12 +1638,12 @@ unsigned int gobang_handcut_check(int piece_record[][BOARD_CELL_NO][8], unsigned
         gobang_show_text("pXc=", IBDebug_Left, IBDebug_Top+25); gobang_show_num((pXc+1), IBDebug_Left+40, IBDebug_Top+25);
         gobang_show_text("pYc=", IBDebug_Left+60, IBDebug_Top+25); gobang_show_num((pYc+1), IBDebug_Left+100, IBDebug_Top+25);
         
-        gobang_show_text("PIECE_RECORD:", IBDebug_Left, IBDebug_Top+45);
+        gobang_show_text("alys_recrd:", IBDebug_Left, IBDebug_Top+45);
 //        int i, j;
         for (i=0; i<4; ++i)
         {
-            gobang_show_num(piece_record[pYc][pXc][2*i], (IBDebug_Left+20*i), IBDebug_Top+65);
-            gobang_show_num(piece_record[pYc][pXc][2*i+1], (IBDebug_Left+20*i), IBDebug_Top+85);
+            gobang_show_num(alys_recrd[pYc][pXc][2*i], (IBDebug_Left+20*i), IBDebug_Top+65);
+            gobang_show_num(alys_recrd[pYc][pXc][2*i+1], (IBDebug_Left+20*i), IBDebug_Top+85);
         }
         gobang_show_text("***************", IBDebug_Left, IBDebug_Top+105);
         for (i=0; i<8; ++i)

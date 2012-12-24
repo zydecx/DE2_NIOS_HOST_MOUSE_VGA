@@ -13,7 +13,7 @@
 #define PIECE_HISTORY_NO    226
 
 //add piece-placing history to this array, 0-pXc, 1-pYc, 2-1/0; 
-//The first row records the size
+//[0][0]-the size,[0][1]-if replay,[0][2]-current raplay NO. 
 int Piece_History[PIECE_HISTORY_NO][3];
 
 int Piece_Record[BOARD_CELL_NO][BOARD_CELL_NO]; 
@@ -28,8 +28,8 @@ int Piece_Analysis_Record[BOARD_CELL_NO][BOARD_CELL_NO][8];
 //0-Mode: 0-调试，1-欢迎，2-对战中，3-局结束，4-比赛结束
 #define INSTR_ARRAY_SIZE    5
 int Instr_Array[INSTR_ARRAY_SIZE];
-//Ongame_Array[5]:0-No. of Rounds, 1-current round, 2-current color(W-1/B-0), 3-B wins rounds, 4-W wins rounds
-#define ONGAME_ARRAY_SIZE    5
+//Ongame_Array[5]:0-No. of Rounds, 1-current round, 2-current color(W-1/B-0), 3-B wins rounds, 4-W wins rounds, 5-roll back function
+#define ONGAME_ARRAY_SIZE    6
 int Ongame_Array[ONGAME_ARRAY_SIZE];
    
 void reset_piece_record_array();    //reset all arrays
@@ -38,6 +38,7 @@ void clean_screen();            //clean all points on screen
 void gobang_board_display();    //Display gobang board on screen
 void gobang_instrA_display();    //display gobang instruction on the right of screen
 void gobang_instrB_display();//display instruction part when players are now playing
+void gobang_instrB_ondisplay();//display who's now placing piece in instruction part
 void gobang_instrC_display(int);//display instruction part when one play wins
 void gobang_instrD_display(int);//display congratulations when game over
 void gobang_box_fill(int, int, int, int);   //(int width, int height, int posx, int posy), (posx, posy) is the top-left coordinate of box
@@ -50,6 +51,7 @@ void gobang_win_display(unsigned int);      //change screen color and display ti
 void gobang_draw_circle(int, int, int);
 void gobang_clear_circle(int, int, int);
 unsigned int gobang_click_circle(int, int, int, int, int);
+void gobang_draw_piece(int, int, int);
 //void set_ASCII8x16_Table();
 
 /*
@@ -85,6 +87,8 @@ unsigned int gobang_handcut_check(int[][BOARD_CELL_NO][8], unsigned int, int, in
 //computer generate position of piece,
 //Array to store position and color(0-B, 1-W), current piece color(0-B, 1-W)
 void gobang_ai_algorithm(int[3], int);   
+void gobang_roll_back();    //悔棋处理函数
+void gobang_replay_game();  //回放处理函数 
         
 
 #endif
