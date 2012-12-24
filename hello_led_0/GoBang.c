@@ -1351,282 +1351,389 @@ unsigned int gobang_handcut_check(int alys_recrd[][BOARD_CELL_NO][8], unsigned i
 {
     if (isWhiteMode)    return 0;
     
-    int piece_next = 0;
-    int piece_next2 = 0;    //for the other cordinate of lean direction
-    int hand_cut_three = 0;
-    int hand_cut_four = 0;
-    int hand_cut_six = 0;
-    int handcut_record[8][6];   //8 Directions, 6 Kinds of Handcut
+    int pm1, pn1, pm2, pn2, pm3, pn3;
+    //int qm1, qn1, qm2, qn2, qm3, qn3;
+    pm1=0;pn1=0;pm2=0;pn2=0;pm3=0;pn3=0;
+    //qm1=qn1=qm2=qn2=qm3=qn3=0;
+    int hc_three = 0;   //hand_cut_three
+    int hc_four = 0;
+    int hc_six = 0;
+    int hc_recrd[8][6];   //hand_cut_record[8][6], 8 Directions, 6 Kinds of Handcut
     int i, j;
     for (i=0; i<8; ++i)
         for (j=0; j<6; ++j)
-            handcut_record[i][j] = 0;
+            hc_recrd[i][j] = 0;
     ///////////////////////////////////////////////////////////////////
-    //         Start check hand-cut of horizontal direction          //
+    //                     Start check hand-cut                      //
     ///////////////////////////////////////////////////////////////////
     //1-"***"
-    if (alys_recrd[pYc][pXc][0]==3 )
+    // horizontal direction 
+    pm1 = pXc-alys_recrd[pYc][pXc][1];
+    pm2 = pXc-alys_recrd[pYc][pXc][1]+alys_recrd[pYc][pXc][0]+1;
+    pn1 = pn2 = pYc;
+    if (alys_recrd[pYc][pXc][0]==3 && pm1>=0 && Piece_Record[pn1][pm1]==0 && pm2<BOARD_CELL_NO && Piece_Record[pn2][pm2]==0 )
     {
-        handcut_record[0][0]++;
-        handcut_record[1][0] = -1;
-        hand_cut_three++;
+        hc_recrd[0][0]++;
+        hc_recrd[1][0] = -1;
+        hc_three++;
     }
+    //verticle direction
+    pn1 = pYc-alys_recrd[pYc][pXc][3];
+    pn2 = pYc-alys_recrd[pYc][pXc][3]+alys_recrd[pYc][pXc][2]+1;
+    pm1 = pm2 = pXc;
+    if (alys_recrd[pYc][pXc][2]==3 && pn1>=0 && Piece_Record[pn1][pm1]==0 && pn2<BOARD_CELL_NO && Piece_Record[pn2][pm2]==0 )
+    {
+        hc_recrd[2][0]++;
+        hc_recrd[3][0] = -1;
+        hc_three++;
+    }
+    //BL-to-TR direction
+    pm1 = pXc-alys_recrd[pYc][pXc][5];
+    pn1 = pYc+alys_recrd[pYc][pXc][5];
+    pm2 = pXc-alys_recrd[pYc][pXc][5]+alys_recrd[pYc][pXc][4]+1;
+    pn2 = pYc+alys_recrd[pYc][pXc][5]-alys_recrd[pYc][pXc][4]-1;
+    if (alys_recrd[pYc][pXc][4]==3 && pm1>=0 && pn1<BOARD_CELL_NO && Piece_Record[pn1][pm1]==0 && pm2<BOARD_CELL_NO && pn2>=0 && Piece_Record[pn2][pm2]==0 )
+    {
+        hc_recrd[4][0]++;
+        hc_recrd[5][0] = -1;
+        hc_three++;
+    }
+    //TL-to-BR direction
+    pm1 = pXc-alys_recrd[pYc][pXc][7];
+    pn1 = pYc-alys_recrd[pYc][pXc][7];
+    pm2 = pXc-alys_recrd[pYc][pXc][7]+alys_recrd[pYc][pXc][6]+1;
+    pn2 = pYc-alys_recrd[pYc][pXc][7]+alys_recrd[pYc][pXc][7]+1;
+    if (alys_recrd[pYc][pXc][6]==3 && pm1>=0 && pn1>=0 && Piece_Record[pn1][pm1]==0 && pm2<BOARD_CELL_NO && pn2<BOARD_CELL_NO && Piece_Record[pn2][pm2]==0 )
+    {
+        hc_recrd[6][0]++;
+        hc_recrd[7][0] = -1;
+        hc_three++;
+    }
+
     //2-"** *"
-    piece_next = pXc - alys_recrd[pYc][pXc][1] - 1;
-    if (piece_next>=0 && alys_recrd[pYc][pXc][0]*alys_recrd[pYc][piece_next][0] == 2 )
+    // horizontal direction 
+    pm1 = pXc-alys_recrd[pYc][pXc][1]-1;
+    pm2 = pXc-alys_recrd[pYc][pXc][1]+alys_recrd[pYc][pXc][0]+1;
+    pn1 = pn2 = pYc;
+    if (pm1>=0 && alys_recrd[pYc][pXc][0]*alys_recrd[pn1][pm1][0]==2 && pm2<BOARD_CELL_NO && Piece_Record[pn2][pm2]==0 && Piece_Record[pn1][pm1+1]==0)
     {
-        handcut_record[0][1]++;
-        hand_cut_three++;
+        pm3 = pm1-alys_recrd[pn1][pm1][1];
+        pn3 = pYc;
+        if (pm3>=0 && Piece_Record[pn3][pm3]==0)
+        {
+            hc_recrd[0][1]++;
+            hc_three++;
+        }
     }
-    piece_next = pXc + alys_recrd[pYc][pXc][0] - alys_recrd[pYc][pXc][1] + 2;
-    if (piece_next<BOARD_CELL_NO && alys_recrd[pYc][pXc][0]*alys_recrd[pYc][piece_next][0] == 2 )
+    pm1 = pXc-alys_recrd[pYc][pXc][1]+alys_recrd[pYc][pXc][0]+2;
+    pm2 = pXc-alys_recrd[pYc][pXc][1];
+    pn1 = pn2 = pYc;
+    if (pm1<BOARD_CELL_NO && alys_recrd[pYc][pXc][0]*alys_recrd[pn1][pm1][0]==2 && pm2>=0 && Piece_Record[pn2][pm2]==0 && Piece_Record[pn1][pm1-1]==0)
     {
-        handcut_record[1][1]++;
-        hand_cut_three++;
+        pm3 = pm1-alys_recrd[pn1][pm1][1]+alys_recrd[pn1][pm1][0]+1;
+        pn3 = pYc;
+        if (pm3<BOARD_CELL_NO && Piece_Record[pn3][pm3]==0)
+        {
+            hc_recrd[1][1]++;
+            hc_three++;
+        }
     }
+    // vertical direction 
+    pn1 = pYc-alys_recrd[pYc][pXc][3]-1;
+    pn2 = pYc-alys_recrd[pYc][pXc][3]+alys_recrd[pYc][pXc][2]+1;
+    pm1 = pm2 = pXc;
+    if (pn1>=0 && alys_recrd[pYc][pXc][2]*alys_recrd[pn1][pm1][2]==2 && pn2<BOARD_CELL_NO && Piece_Record[pn2][pm2]==0 && Piece_Record[pn1+1][pm1]==0)
+    {
+        pn3 = pn1-alys_recrd[pn1][pm1][3];
+        pm3 = pXc;
+        if (pn3>=0 && Piece_Record[pn3][pm3]==0)
+        {
+            hc_recrd[2][1]++;
+            hc_three++;
+        }
+    }
+    pn1 = pYc-alys_recrd[pYc][pXc][3]+alys_recrd[pYc][pXc][2]+2;
+    pn2 = pYc-alys_recrd[pYc][pXc][3];
+    pm1 = pm2 = pXc;
+    if (pn1<BOARD_CELL_NO && alys_recrd[pYc][pXc][2]*alys_recrd[pn1][pm1][2]==2 && pn2>=0 && Piece_Record[pn2][pm2]==0 && Piece_Record[pn1-1][pm1]==0)
+    {
+        pn3 = pn1-alys_recrd[pn1][pm1][3]+alys_recrd[pn1][pm1][2]+1;
+        pm3 = pXc;
+        if (pn3<BOARD_CELL_NO && Piece_Record[pn3][pm3]==0)
+        {
+            hc_recrd[3][1]++;
+            hc_three++;
+        }
+    }
+    //BL-to-TR direction
+    pm1 = pXc-alys_recrd[pYc][pXc][5]-1;
+    pn1 = pYc+alys_recrd[pYc][pXc][5]+1;
+    pm2 = pXc-alys_recrd[pYc][pXc][5]+alys_recrd[pYc][pXc][4]+1;
+    pn2 = pYc+alys_recrd[pYc][pXc][5]-alys_recrd[pYc][pXc][4]-1;
+    if (pm1>=0 && pn1<BOARD_CELL_NO && alys_recrd[pYc][pXc][4]*alys_recrd[pn1][pm1][4]==2 && pm2<BOARD_CELL_NO && pn2>=0 && Piece_Record[pn2][pm2]==0 && Piece_Record[pn1-1][pm1+1]==0 )
+    {
+        pm3 = pm1-alys_recrd[pn1][pm1][5];
+        pn3 = pn1+alys_recrd[pn1][pm1][5];
+        if (pm3>=0 && pn3<BOARD_CELL_NO && Piece_Record[pn3][pm3]==0)
+        {
+            hc_recrd[4][1]++;
+            hc_three++;
+        }
+    }
+    pm1 = pXc-alys_recrd[pYc][pXc][5]+alys_recrd[pYc][pXc][4]+2;
+    pn1 = pYc+alys_recrd[pYc][pXc][5]-alys_recrd[pYc][pXc][4]-2;
+    pm2 = pXc-alys_recrd[pYc][pXc][5];
+    pn2 = pYc+alys_recrd[pYc][pXc][5];
+    if (pm1<BOARD_CELL_NO && pn1>=0 && alys_recrd[pYc][pXc][4]*alys_recrd[pn1][pm1][4]==2 && pm2>=0 && pn2<BOARD_CELL_NO && Piece_Record[pn2][pm2]==0 && Piece_Record[pn1+1][pm1-1]==0 )
+    {
+        pm3 = pm1-alys_recrd[pn1][pm1][5]+alys_recrd[pn1][pm1][4]+1;
+        pn3 = pn1+alys_recrd[pn1][pm1][5]-alys_recrd[pn1][pm1][4]-1;
+        if (pm3<BOARD_CELL_NO && pn3>=0 && Piece_Record[pn3][pm3]==0)
+        {
+            hc_recrd[5][1]++;
+            hc_three++;
+        }
+    }
+    //TL-to-BR direction
+    pm1 = pXc-alys_recrd[pYc][pXc][7]-1;
+    pn1 = pYc-alys_recrd[pYc][pXc][7]-1;
+    pm2 = pXc-alys_recrd[pYc][pXc][7]+alys_recrd[pYc][pXc][6]+1;
+    pn2 = pYc-alys_recrd[pYc][pXc][7]+alys_recrd[pYc][pXc][6]+1;
+    if (pm1>=0 && pn1>=0 && alys_recrd[pYc][pXc][6]*alys_recrd[pn1][pm1][6]==2 && pm2<BOARD_CELL_NO && pn2<BOARD_CELL_NO && Piece_Record[pn2][pm2]==0 && Piece_Record[pn1+1][pm1+1]==0 )
+    {
+        pm3 = pm1-alys_recrd[pn1][pm1][7];
+        pn3 = pn1-alys_recrd[pn1][pm1][7];
+        if (pm3>=0 && pn3>=0 && Piece_Record[pn3][pm3]==0)
+        {
+            hc_recrd[6][1]++;
+            hc_three++;
+        }
+    }
+    pm1 = pXc-alys_recrd[pYc][pXc][7]+alys_recrd[pYc][pXc][6]+2;
+    pn1 = pYc-alys_recrd[pYc][pXc][7]+alys_recrd[pYc][pXc][6]+2;
+    pm2 = pXc-alys_recrd[pYc][pXc][7];
+    pn2 = pYc-alys_recrd[pYc][pXc][7];
+    if (pm1<BOARD_CELL_NO && pn1<BOARD_CELL_NO && alys_recrd[pYc][pXc][6]*alys_recrd[pn1][pm1][6]==2 && pm2>=0 && pn2>=0 && Piece_Record[pn2][pm2]==0 && Piece_Record[pn1-1][pm1-1]==0 )
+    {
+        pm3 = pm1-alys_recrd[pn1][pm1][7]+alys_recrd[pn1][pm1][6]+1;
+        pn3 = pn1-alys_recrd[pn1][pm1][7]+alys_recrd[pn1][pm1][6]+1;
+        if (pm3<BOARD_CELL_NO && pn3<BOARD_CELL_NO && Piece_Record[pn3][pm3]==0)
+        {
+            hc_recrd[7][1]++;
+            hc_three++;
+        }
+    }
+
     //3-"****"
-    if (alys_recrd[pYc][pXc][0] == 4)
+    //horizontal direction
+    pm1 = pXc-alys_recrd[pYc][pXc][1];
+    pm2 = pXc-alys_recrd[pYc][pXc][1]+alys_recrd[pYc][pXc][0]+1;
+    pn1 = pn2 = pYc;
+    if (alys_recrd[pYc][pXc][0]==4 && 
+        ((pm1>=0 && pm2<BOARD_CELL_NO && Piece_Record[pn1][pm1]*Piece_Record[pn2][pm2]==0)||
+        (pm1>=0 && pm2>=BOARD_CELL_NO && Piece_Record[pn1][pm1]==0)||
+        (pm1<0 && pm2<BOARD_CELL_NO && Piece_Record[pn2][pm2]==0)) )
     {
-        handcut_record[0][2]++;
-        handcut_record[1][2] = -1;
-        hand_cut_four++;
+        hc_recrd[0][2]++;
+        hc_recrd[1][2] = -1;
+        hc_four++;
     }
+    //verticle direction
+    pn1 = pYc-alys_recrd[pYc][pXc][3];
+    pn2 = pYc-alys_recrd[pYc][pXc][3]+alys_recrd[pYc][pXc][2]+1;
+    pm1 = pm2 = pXc;
+    if (alys_recrd[pYc][pXc][2]==4 && 
+        ((pn1>=0 && pn2<BOARD_CELL_NO && Piece_Record[pn1][pm1]*Piece_Record[pn2][pm2]==0)||
+        (pn1>=0 && pn2>=BOARD_CELL_NO && Piece_Record[pn1][pm1]==0)||
+        (pn1<0 && pn2<BOARD_CELL_NO && Piece_Record[pn2][pm2]==0)) )
+    {
+        hc_recrd[2][2]++;
+        hc_recrd[3][2] = -1;
+        hc_four++;
+    }
+    //BL-to-TR direction
+    pm1 = pXc-alys_recrd[pYc][pXc][5];
+    pn1 = pYc+alys_recrd[pYc][pXc][5];
+    pm2 = pXc-alys_recrd[pYc][pXc][5]+alys_recrd[pYc][pXc][4]+1;
+    pn2 = pYc+alys_recrd[pYc][pXc][5]-alys_recrd[pYc][pXc][4]-1;
+    if (alys_recrd[pYc][pXc][4]==4 && 
+        ((pm1>=0 && pn1<BOARD_CELL_NO && pm2<BOARD_CELL_NO && pn2>=0 && Piece_Record[pn1][pm1]*Piece_Record[pn2][pm2]==0)||
+        (pm1>=0 && pn1<BOARD_CELL_NO && (pm2>=BOARD_CELL_NO || pn2<0) && Piece_Record[pn1][pm1]==0)||
+        ((pm1<0 || pn1>=BOARD_CELL_NO) && pm2<BOARD_CELL_NO && pn2>=0 && Piece_Record[pn2][pm2]==0)) )
+    {
+        hc_recrd[4][2]++;
+        hc_recrd[5][2] = -1;
+        hc_four++;
+    }
+    //TL-to-BR direction
+    pm1 = pXc-alys_recrd[pYc][pXc][7];
+    pn1 = pYc-alys_recrd[pYc][pXc][7];
+    pm2 = pXc-alys_recrd[pYc][pXc][7]+alys_recrd[pYc][pXc][6]+1;
+    pn2 = pYc-alys_recrd[pYc][pXc][7]+alys_recrd[pYc][pXc][7]+1;
+    if (alys_recrd[pYc][pXc][6]==4 && 
+        ((pm1>=0 && pn1>=0 && pm2<BOARD_CELL_NO && pn2<BOARD_CELL_NO && Piece_Record[pn1][pm1]*Piece_Record[pn2][pm2]==0)||
+        (pm1>=0 && pn1>=0 && (pm2>=BOARD_CELL_NO || pn2>=BOARD_CELL_NO) && Piece_Record[pn1][pm1])||
+        ((pm1<0 || pn1<0) && pm2<BOARD_CELL_NO && pn2<BOARD_CELL_NO && Piece_Record[pn2][pm2]==0)) )
+    {
+        hc_recrd[6][2]++;
+        hc_recrd[7][2] = -1;
+        hc_four++;
+    }
+
     //4-"*** *"
-    piece_next = pXc - alys_recrd[pYc][pXc][1] - 1;
-    if (piece_next>=0 && alys_recrd[pYc][pXc][0]*alys_recrd[pYc][piece_next][0] == 3 )
+    //horizontal direction
+    pm1 = pXc-alys_recrd[pYc][pXc][1]-1;
+    pn1 = pYc;
+    if (pm1>=0 && alys_recrd[pYc][pXc][0]*alys_recrd[pn1][pm1][0]==3 && Piece_Record[pn1][pm1+1]==0)
     {
-        handcut_record[0][3]++;
-        hand_cut_four++;
+        hc_recrd[0][3]++;
+        hc_four++;
     }
-    piece_next = pXc + alys_recrd[pYc][pXc][0] - alys_recrd[pYc][pXc][1] + 2;
-    if (piece_next<BOARD_CELL_NO && alys_recrd[pYc][pXc][0]*alys_recrd[pYc][piece_next][0] == 3 )
+    pm1 = pXc-alys_recrd[pYc][pXc][1]+alys_recrd[pYc][pXc][0]+2;
+    pn1 = pYc;
+    if (pm1<BOARD_CELL_NO && alys_recrd[pYc][pXc][0]*alys_recrd[pn1][pm1][0]==3 && Piece_Record[pn1][pm1-1]==0)
     {
-        handcut_record[1][3]++;
-        hand_cut_four++;
+        hc_recrd[1][3]++;
+        hc_four++;
     }
+    // vertical direction 
+    pn1 = pYc-alys_recrd[pYc][pXc][3]-1;
+    pm1 = pXc;
+    if (pn1>=0 && alys_recrd[pYc][pXc][2]*alys_recrd[pn1][pm1][2]==3 && Piece_Record[pn1+1][pm1]==0)
+    {
+        hc_recrd[2][3]++;
+        hc_four++;
+    }
+    pn1 = pYc-alys_recrd[pYc][pXc][3]+alys_recrd[pYc][pXc][2]+2;
+    pm1 = pXc;
+    if (pn1<BOARD_CELL_NO && alys_recrd[pYc][pXc][2]*alys_recrd[pn1][pm1][2]==3 && Piece_Record[pn1-1][pm1]==0)
+    {
+        hc_recrd[3][3]++;
+        hc_four++;
+    }
+    //BL-to-TR direction
+    pm1 = pXc-alys_recrd[pYc][pXc][5]-1;
+    pn1 = pYc+alys_recrd[pYc][pXc][5]+1;
+    if (pm1>=0 && pn1<BOARD_CELL_NO && alys_recrd[pYc][pXc][4]*alys_recrd[pn1][pm1][4]==3 && Piece_Record[pn1-1][pm1+1]==0 )
+    {
+        hc_recrd[4][3]++;
+        hc_four++;
+    }
+    pm1 = pXc-alys_recrd[pYc][pXc][5]+alys_recrd[pYc][pXc][4]+2;
+    pn1 = pYc+alys_recrd[pYc][pXc][5]-alys_recrd[pYc][pXc][4]-2;
+    if (pm1<BOARD_CELL_NO && pn1>=0 && alys_recrd[pYc][pXc][4]*alys_recrd[pn1][pm1][4]==3 && Piece_Record[pn1+1][pm1-1]==0 )
+    {
+        hc_recrd[5][3]++;
+        hc_four++;
+    }
+    //TL-to-BR direction
+    pm1 = pXc-alys_recrd[pYc][pXc][7]-1;
+    pn1 = pYc-alys_recrd[pYc][pXc][7]-1;
+    if (pm1>=0 && pn1>=0 && alys_recrd[pYc][pXc][6]*alys_recrd[pn1][pm1][6]==3 && Piece_Record[pn1+1][pm1+1]==0 )
+    {
+        hc_recrd[6][3]++;
+        hc_four++;
+    }
+    pm1 = pXc-alys_recrd[pYc][pXc][7]+alys_recrd[pYc][pXc][6]+2;
+    pn1 = pYc-alys_recrd[pYc][pXc][7]+alys_recrd[pYc][pXc][6]+2;
+    if (pm1<BOARD_CELL_NO && pn1<BOARD_CELL_NO && alys_recrd[pYc][pXc][6]*alys_recrd[pn1][pm1][6]==3 && Piece_Record[pn1-1][pm1-1]==0 )
+    {
+        hc_recrd[7][3]++;
+        hc_four++;
+    }
+
+
     //5-"** **"
-    piece_next = pXc - alys_recrd[pYc][pXc][1] - 1;
-    if (piece_next>=0 && alys_recrd[pYc][pXc][0] == 2 && alys_recrd[pYc][piece_next][0] == 2 )
+    pm1 = pXc-alys_recrd[pYc][pXc][1]-1;
+    pn1 = pYc;
+    if (pm1>=0 && alys_recrd[pYc][pXc][0]==2 && alys_recrd[pn1][pm1][0]==2 && Piece_Record[pn1][pm1+1]==0)
     {
-        handcut_record[0][4]++;
-        hand_cut_four++;
+        hc_recrd[0][4]++;
+        hc_four++;
     }
-    piece_next = pXc + alys_recrd[pYc][pXc][0] - alys_recrd[pYc][pXc][1] + 2;
-    if (piece_next<BOARD_CELL_NO && alys_recrd[pYc][pXc][0] == 2 && alys_recrd[pYc][piece_next][0] == 2 )
+    pm1 = pXc-alys_recrd[pYc][pXc][1]+alys_recrd[pYc][pXc][0]+2;
+    pn1 = pYc;
+    if (pm1<BOARD_CELL_NO && alys_recrd[pYc][pXc][0]==2 && alys_recrd[pn1][pm1][0]==2 && Piece_Record[pn1][pm1-1]==0)
     {
-        handcut_record[1][4]++;
-        hand_cut_four++;
+        hc_recrd[1][4]++;
+        hc_four++;
+    }
+    // vertical direction 
+    pn1 = pYc-alys_recrd[pYc][pXc][3]-1;
+    pm1 = pXc;
+    if (pn1>=0 && alys_recrd[pYc][pXc][2]==2 && alys_recrd[pn1][pm1][2]==2 && Piece_Record[pn1+1][pm1]==0)
+    {
+        hc_recrd[2][4]++;
+        hc_four++;
+    }
+    pn1 = pYc-alys_recrd[pYc][pXc][3]+alys_recrd[pYc][pXc][2]+2;
+    pm1 = pXc;
+    if (pn1<BOARD_CELL_NO && alys_recrd[pYc][pXc][2]==2 && alys_recrd[pn1][pm1][2]==2 && Piece_Record[pn1-1][pm1]==0)
+    {
+        hc_recrd[3][4]++;
+        hc_four++;
+    }
+    //BL-to-TR direction
+    pm1 = pXc-alys_recrd[pYc][pXc][5]-1;
+    pn1 = pYc+alys_recrd[pYc][pXc][5]+1;
+    if (pm1>=0 && pn1<BOARD_CELL_NO && alys_recrd[pYc][pXc][4]==2 && alys_recrd[pn1][pm1][4]==2 && Piece_Record[pn1-1][pm1+1]==0 )
+    {
+        hc_recrd[4][4]++;
+        hc_four++;
+    }
+    pm1 = pXc-alys_recrd[pYc][pXc][5]+alys_recrd[pYc][pXc][4]+2;
+    pn1 = pYc+alys_recrd[pYc][pXc][5]-alys_recrd[pYc][pXc][4]-2;
+    if (pm1<BOARD_CELL_NO && pn1>=0 && alys_recrd[pYc][pXc][4]==2 && alys_recrd[pn1][pm1][4]==2 && Piece_Record[pn1+1][pm1-1]==0 )
+    {
+        hc_recrd[5][4]++;
+        hc_four++;
+    }
+    //TL-to-BR direction
+    pm1 = pXc-alys_recrd[pYc][pXc][7]-1;
+    pn1 = pYc-alys_recrd[pYc][pXc][7]-1;
+    if (pm1>=0 && pn1>=0 && alys_recrd[pYc][pXc][6]==2 && alys_recrd[pn1][pm1][6]==2 && Piece_Record[pn1+1][pm1+1]==0 )
+    {
+        hc_recrd[6][4]++;
+        hc_four++;
+    }
+    pm1 = pXc-alys_recrd[pYc][pXc][7]+alys_recrd[pYc][pXc][6]+2;
+    pn1 = pYc-alys_recrd[pYc][pXc][7]+alys_recrd[pYc][pXc][6]+2;
+    if (pm1<BOARD_CELL_NO && pn1<BOARD_CELL_NO && alys_recrd[pYc][pXc][6]==2 && alys_recrd[pn1][pm1][6]==2 && Piece_Record[pn1-1][pm1-1]==0 )
+    {
+        hc_recrd[7][4]++;
+        hc_four++;
     }
     //6-"***...***"
+    //horizontal direction
     if (alys_recrd[pYc][pXc][0] > 5)
     {
-        handcut_record[0][5]++;
-        handcut_record[1][5] = -1;
-        hand_cut_six++;
+        hc_recrd[0][5]++;
+        hc_recrd[1][5] = -1;
+        hc_six++;
     }
-    //////////////////////////////////////////////////////////////////
-    //         Start check hand-cut of verticle direction           //
-    ///////////////////////////////////////////////////////////////////
-    //1-"***"
-    if (alys_recrd[pYc][pXc][2] == 3)
-    {
-        handcut_record[2][0]++;
-        handcut_record[3][0] = -1;
-        hand_cut_three++;
-    }
-    //2-"** *"
-    piece_next = pYc - alys_recrd[pYc][pXc][3] - 1;
-    if (piece_next>=0 && alys_recrd[pYc][pXc][2]*alys_recrd[piece_next][pXc][2] == 2 )
-    {
-        handcut_record[2][1]++;
-        hand_cut_three++;
-    }
-    piece_next = pYc + alys_recrd[pYc][pXc][2] - alys_recrd[pYc][pXc][3] + 2;
-    if (piece_next<BOARD_CELL_NO && alys_recrd[pYc][pXc][2]*alys_recrd[piece_next][pXc][2] == 2 )
-    {
-        handcut_record[3][1]++;
-        hand_cut_three++;
-    }
-    //3-"****"
-    if (alys_recrd[pYc][pXc][2] == 4)
-    {
-        handcut_record[2][2]++;
-        handcut_record[3][2] = -1;
-        hand_cut_four++;
-    }
-    //4-"*** *"
-    piece_next = pYc - alys_recrd[pYc][pXc][3] - 1;
-    if (piece_next>=0 && alys_recrd[pYc][pXc][2]*alys_recrd[piece_next][pXc][2] == 3 )
-    {
-        handcut_record[2][3]++;
-        hand_cut_four++;
-    }
-    piece_next = pYc + alys_recrd[pYc][pXc][2] - alys_recrd[pYc][pXc][3] + 2;
-    if (piece_next<BOARD_CELL_NO && alys_recrd[pYc][pXc][2]*alys_recrd[piece_next][pXc][2] == 3 )
-    {
-        handcut_record[3][3]++;
-        hand_cut_four++;
-    }
-    //5-"** **"
-    piece_next = pYc - alys_recrd[pYc][pXc][3] - 1;
-    if (piece_next>=0 && alys_recrd[pYc][pXc][2] == 2 && alys_recrd[piece_next][pXc][2] == 2 )
-    {
-        handcut_record[2][4]++;
-        hand_cut_four++;
-    }
-    piece_next = pYc + alys_recrd[pYc][pXc][2] - alys_recrd[pYc][pXc][3] + 2;
-    if (piece_next<BOARD_CELL_NO && alys_recrd[pYc][pXc][2] == 2 && alys_recrd[piece_next][pXc][2] == 2 )
-    {
-        handcut_record[3][4]++;
-        hand_cut_four++;
-    }
-    //6-"***...***"
+    // vertical direction
     if (alys_recrd[pYc][pXc][2] > 5)
     {
-        handcut_record[2][5]++;
-        handcut_record[3][5] = -1;
-        hand_cut_six++;
+        hc_recrd[2][5]++;
+        hc_recrd[3][5] = -1;
+        hc_six++;
     }
-    ///////////////////////////////////////////////////////////////////
-    //          Start check hand-cut of BL-to-TR direction           //
-    ///////////////////////////////////////////////////////////////////
-    //1-"***"
-    if (alys_recrd[pYc][pXc][4] == 3)
-    {
-        handcut_record[4][0]++;
-        handcut_record[5][0] = -1;
-        hand_cut_three++;
-    }
-    //2-"** *"
-    piece_next = pXc - alys_recrd[pYc][pXc][5] - 1;
-    piece_next2 = pYc +  alys_recrd[pYc][pXc][5] + 1;
-    if (piece_next>=0 && piece_next2<BOARD_CELL_NO && alys_recrd[pYc][pXc][4]*alys_recrd[piece_next2][piece_next][4] == 2 )
-    {
-        handcut_record[4][1]++;
-        hand_cut_three++;
-    }
-    piece_next = pXc + alys_recrd[pYc][pXc][4] - alys_recrd[pYc][pXc][5] + 2;
-    piece_next2 = pYc - alys_recrd[pYc][pXc][4] + alys_recrd[pYc][pXc][5] - 2;
-    if (piece_next<BOARD_CELL_NO && piece_next2>=0 && alys_recrd[pYc][pXc][4]*alys_recrd[piece_next2][piece_next][4] == 2 )
-    {
-        handcut_record[5][1]++;
-        hand_cut_three++;
-    }
-    //3-"****"
-    if (alys_recrd[pYc][pXc][4] == 4)
-    {
-        handcut_record[4][2]++;
-        handcut_record[5][2] = -1;
-        hand_cut_four++;
-    }
-    //4-"*** *"
-    piece_next = pXc - alys_recrd[pYc][pXc][5] - 1;
-    piece_next2 = pYc +  alys_recrd[pYc][pXc][5] + 1;
-    if (piece_next>=0 && piece_next2<BOARD_CELL_NO && alys_recrd[pYc][pXc][4]*alys_recrd[piece_next2][piece_next][4] == 3 )
-    {
-        handcut_record[4][3]++;
-        hand_cut_four++;
-    }
-    piece_next = pXc + alys_recrd[pYc][pXc][4] - alys_recrd[pYc][pXc][5] + 2;
-    piece_next2 = pYc - alys_recrd[pYc][pXc][4] + alys_recrd[pYc][pXc][5] - 2;
-    if (piece_next<BOARD_CELL_NO && piece_next2>=0 && alys_recrd[pYc][pXc][4]*alys_recrd[piece_next2][piece_next][4] == 3 )
-    {
-        handcut_record[5][3]++;
-        hand_cut_four++;
-    }
-    //5-"** **"
-    piece_next = pXc - alys_recrd[pYc][pXc][5] - 1;
-    piece_next2 = pYc +  alys_recrd[pYc][pXc][5] + 1;
-    if (piece_next>=0 && piece_next2<BOARD_CELL_NO && alys_recrd[pYc][pXc][4]==2 && alys_recrd[piece_next2][piece_next][4] == 2 )
-    {
-        handcut_record[4][4]++;
-        hand_cut_four++;
-    }
-    piece_next = pXc + alys_recrd[pYc][pXc][4] - alys_recrd[pYc][pXc][5] + 2;
-    piece_next2 = pYc - alys_recrd[pYc][pXc][4] + alys_recrd[pYc][pXc][5] - 2;
-    if (piece_next<BOARD_CELL_NO && piece_next2>=0 && alys_recrd[pYc][pXc][4]==2 && alys_recrd[piece_next2][piece_next][4] == 2 )
-    {
-        handcut_record[5][4]++;
-        hand_cut_four++;
-    }
-    //6-"***...***"
+    //BL-to-TR direction
     if (alys_recrd[pYc][pXc][4] > 5)
     {
-        handcut_record[4][5]++;
-        handcut_record[5][5] = -1;
-        hand_cut_six++;
+        hc_recrd[4][5]++;
+        hc_recrd[5][5] = -1;
+        hc_six++;
     }
-    ///////////////////////////////////////////////////////////////////
-    //          Start check hand-cut of TL-to-BR direction           //
-    ///////////////////////////////////////////////////////////////////
-    //1-"***"
-    if (alys_recrd[pYc][pXc][6] == 3)
-    {
-        handcut_record[6][0]++;
-        handcut_record[7][0] = -1;
-        hand_cut_three++;
-    }
-    //2-"** *"
-    piece_next = pXc - alys_recrd[pYc][pXc][7] - 1;
-    piece_next2 = pYc - alys_recrd[pYc][pXc][7] - 1;
-    if (piece_next>=0 && piece_next2>=0 && alys_recrd[pYc][pXc][6]*alys_recrd[piece_next2][piece_next][6] == 2 )
-    {
-        handcut_record[6][1]++;
-        hand_cut_three++;
-    }
-    piece_next = pXc + alys_recrd[pYc][pXc][6] - alys_recrd[pYc][pXc][7] + 2;
-    piece_next2 = pYc + alys_recrd[pYc][pXc][6] - alys_recrd[pYc][pXc][7] + 2;
-    if (piece_next<BOARD_CELL_NO && piece_next2<BOARD_CELL_NO && alys_recrd[pYc][pXc][6]*alys_recrd[piece_next2][piece_next][6] == 2 )
-    {
-        handcut_record[7][1]++;
-        hand_cut_three++;
-    }
-    //3-"****"
-    if (alys_recrd[pYc][pXc][6] == 4)
-    {
-        handcut_record[6][2]++;
-        handcut_record[7][2] = -1;
-        hand_cut_four++;
-    }
-    //4-"*** *"
-    piece_next = pXc - alys_recrd[pYc][pXc][7] - 1;
-    piece_next2 = pYc - alys_recrd[pYc][pXc][7] - 1;
-    if (piece_next>=0 && piece_next2>=0 && alys_recrd[pYc][pXc][6]*alys_recrd[piece_next2][piece_next][6] == 3 )
-    {
-        handcut_record[6][3]++;
-        hand_cut_four++;
-    }
-    piece_next = pXc + alys_recrd[pYc][pXc][6] - alys_recrd[pYc][pXc][7] + 2;
-    piece_next2 = pYc + alys_recrd[pYc][pXc][6] - alys_recrd[pYc][pXc][7] + 2;
-    if (piece_next<BOARD_CELL_NO && piece_next2<BOARD_CELL_NO && alys_recrd[pYc][pXc][6]*alys_recrd[piece_next2][piece_next][6] == 3 )
-    {
-        handcut_record[7][3]++;
-        hand_cut_four++;
-    }
-    //5-"** **"
-    piece_next = pXc - alys_recrd[pYc][pXc][7] - 1;
-    piece_next2 = pYc - alys_recrd[pYc][pXc][7] - 1;
-    if (piece_next>=0 && piece_next2>=0 && alys_recrd[pYc][pXc][6]==2 && alys_recrd[piece_next2][piece_next][6] == 2 )
-    {
-        handcut_record[6][4]++;
-        hand_cut_four++;
-    }
-    piece_next = pXc + alys_recrd[pYc][pXc][6] - alys_recrd[pYc][pXc][7] + 2;
-    piece_next2 = pYc + alys_recrd[pYc][pXc][6] - alys_recrd[pYc][pXc][7] + 2;
-    if (piece_next<BOARD_CELL_NO && piece_next2<BOARD_CELL_NO && alys_recrd[pYc][pXc][6]==2 && alys_recrd[piece_next2][piece_next][6] == 2 )
-    {
-        handcut_record[7][4]++;
-        hand_cut_four++;
-    }
-    //6-"***...***"
+    //TL-to-BR direction
     if (alys_recrd[pYc][pXc][6] > 5)
     {
-        handcut_record[6][5]++;
-        handcut_record[7][5] = -1;
-        hand_cut_six++;
+        hc_recrd[6][5]++;
+        hc_recrd[7][5] = -1;
+        hc_six++;
     }
         
-    if (hand_cut_three >= 2 || hand_cut_four >= 2 || hand_cut_six >= 1)
+    if (hc_three >= 2 || hc_four >= 2 || hc_six >= 1)
     { 
         gobang_draw_circle(BOARD_PIECE_RADIUS/2, (pXc*BOARD_HOR_MARGIN+BOARD_LEFT_EDGE), (pYc*BOARD_VER_MARGIN+BOARD_TOP_EDGE));
         
@@ -1649,12 +1756,12 @@ unsigned int gobang_handcut_check(int alys_recrd[][BOARD_CELL_NO][8], unsigned i
         for (i=0; i<8; ++i)
             for (j=0; j<6; ++j)
             {
-                gobang_show_num(handcut_record[i][j], (IBDebug_Left+20*j), (IBDebug_Top+125+16*i));
+                gobang_show_num(hc_recrd[i][j], (IBDebug_Left+20*j), (IBDebug_Top+125+16*i));
             }
         
-//        gobang_show_text("3连=", 480, 290); gobang_show_num(hand_cut_three, 540, 290);
-//        gobang_show_text("4连=", 480, 310); gobang_show_num(hand_cut_four, 540, 310);
-//        gobang_show_text("6连=", 480, 330); gobang_show_num(hand_cut_six, 540, 330);
+//        gobang_show_text("3连=", 480, 290); gobang_show_num(hc_three, 540, 290);
+//        gobang_show_text("4连=", 480, 310); gobang_show_num(hc_four, 540, 310);
+//        gobang_show_text("6连=", 480, 330); gobang_show_num(hc_six, 540, 330);
         
         return 1;
     }
