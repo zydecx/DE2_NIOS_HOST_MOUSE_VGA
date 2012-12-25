@@ -485,6 +485,8 @@ void reset_piece_record_array()
    for (ex = 0; ex < PIECE_HISTORY_NO; ++ex)
         for (ey = 0; ey < 3; ++ey)
             Piece_History[ex][ey] = 0;
+   for (ex = 0; ex < AI_SEARCH_REGION; ++ex)
+        AI_Region[ex] = 7;
 }
 void reset_game_config_array()
 {
@@ -560,7 +562,7 @@ void gobang_game_resume()
         if (Instr_Array[3]==0 && Instr_Array[4]!=(Ongame_Array[1]%2)) //Peer-to-PC 
         {
             int CPiece[3];
-            gobang_ai_algorithm(CPiece, Ongame_Array[2]);   //computer generate position of piece,
+            gobang_proc_ai(CPiece, Ongame_Array[2]);   //computer generate position of piece,
                                                             //Cpiece-to store position, Ongame_Array[2]-current piece color
             gobang_place_piece(CPiece[0], CPiece[1]);
         }
@@ -886,7 +888,7 @@ void gobang_read_instr_state(int posx, int posy)
             if (Instr_Array[3]==0 && Instr_Array[4]==0) //Peer-to-PC and computer first(black one)
             {
                 int CPiece[3];
-                gobang_ai_algorithm(CPiece, Ongame_Array[2]);   //computer generate position of piece,
+                gobang_proc_ai(CPiece, Ongame_Array[2]);   //computer generate position of piece,
                                                                 //Cpiece-to store position, Ongame_Array[2]-current piece color
                 gobang_place_piece(CPiece[0], CPiece[1]);
             }
@@ -1060,31 +1062,634 @@ void gobang_replay_game()  //回放处理函数
     }
 }
 //-------------------------------------------------------------------------
-void gobang_ai_algorithm(int PiecePos[3], int isWhite)
+void gobang_proc_ai(int PiecePos[3], int isWhite)
 {
-    int ex, ey;
+//    int ex, ey;
+//    for (ex=0; ex<BOARD_CELL_NO; ++ex)
+//        for (ey=0; ey<BOARD_CELL_NO; ++ey)
+//        {
+//            if (Piece_Record[ey][ex]==0)
+//            {
+//                PiecePos[0] = ex;
+//                PiecePos[1] = ey;
+//                PiecePos[2] = isWhite;
+//                return;
+//            }
+//        }
+    int opti_pos[2];
+    while(gobang_opti_score(opti_pos, isWhite) == -1)
+    {
+        AI_Region[0] = (AI_Region[0]-2)>=0 ? (AI_Region[0]-2) : 0;
+        AI_Region[1] = (AI_Region[1]+2)<BOARD_CELL_NO ? (AI_Region[1]+2) : (BOARD_CELL_NO-1);
+        AI_Region[2] = (AI_Region[2]-2)>=0 ? (AI_Region[2]-2) : 0;
+        AI_Region[3] = (AI_Region[3]+2)<BOARD_CELL_NO ? (AI_Region[3]+2) : (BOARD_CELL_NO-1); 
+    }
+    PiecePos[0] = opti_pos[0];
+    PiecePos[1] = opti_pos[1];
+    PiecePos[2] = isWhite;
+}
+//-------------------------------------------------------------------------
+int gobang_opti_score(int pos[2], int isWhite)
+{
+    int optipx, optipy, optiscore;
+    optipx = optipy = optiscore = -1;
+    int ex, ey, ez;
+    int ai_alys_array[BOARD_CELL_NO][BOARD_CELL_NO][2];
+    int alys_recrd[BOARD_CELL_NO][BOARD_CELL_NO][8];
+    int ps_recrd[BOARD_CELL_NO][BOARD_CELL_NO];
     for (ex=0; ex<BOARD_CELL_NO; ++ex)
         for (ey=0; ey<BOARD_CELL_NO; ++ey)
         {
-            if (Piece_Record[ey][ex]==0)
+            ps_recrd[ex][ey] = Piece_Record[ex][ey];
+            for (ez=0; ez<8; ++ez)
+                alys_recrd[ex][ey][ez] = Piece_Analysis_Record[ex][ey][ez];
+        }
+    
+    for (ex=AI_Region[0]; ex<=AI_Region[1]; ++ex)
+        for (ey=AI_Region[2]; ey<=AI_Region[3]; ++ey)
+        {
+            if (ps_recrd[ey][ex]!=0)
             {
-                PiecePos[0] = ex;
-                PiecePos[1] = ey;
-                PiecePos[2] = isWhite;
-                return;
+                ai_alys_array[ey][ex][0] = -1;
+                ai_alys_array[ey][ex][1] = -1;
+            }    
+            else
+            {
+                ps_recrd[ey][ex] = 1-2*isWhite;
+                if (gobang_update_state(alys_recrd,ps_recrd, ex, ey, isWhite)==(1-isWhite))
+                    ai_alys_array[ey][ex][0] = -1;  //当造成对方获胜,则舍弃该方案
+                else
+                {
+                    ai_alys_array[ey][ex][0] = gobang_get_score(alys_recrd,ps_recrd,ex, ey, isWhite);
+                }
+                ps_recrd[ey][ex] = 1-2*(1-isWhite);
+                if (gobang_update_state(alys_recrd,ps_recrd, ex, ey, (1-isWhite))==isWhite)
+                    ai_alys_array[ey][ex][1] = -1;  //当造成对方获胜,则舍弃该方案
+                else
+                {
+                    ai_alys_array[ey][ex][1] = gobang_get_score(alys_recrd,ps_recrd,ex, ey, (1-isWhite));
+                }
+                ps_recrd[ey][ex] = 0;
+            }
+            
+            if (ai_alys_array[ey][ex][0]>=optiscore)
+            {
+                optipx = ex;
+                optipy = ey;
+                optiscore = ai_alys_array[ey][ex][0];
+            }
+            if (ai_alys_array[ey][ex][1]>=optiscore)
+            {
+                optiscore = ai_alys_array[ey][ex][1];
             }
         }
+   
+   if (optipx==-1  || optipy==-1)
+   {
+        for (ex=0; ex<BOARD_CELL_NO; ++ex)
+            for (ey=0; ey<BOARD_CELL_NO; ++ey)
+            {
+                if (Piece_Record[ey][ex]==0)
+                {
+                    optipx = ex;
+                    optipy = ey;
+                    break;
+                }
+            }
+   }
+   pos[0] = optipx; pos[1] = optipy;
+   return optiscore;
+}
+//-------------------------------------------------------------------------
+int gobang_ai_algorithm(int pXc, int pYc, int isWhite)
+{
+    int total_score=0;
+    int ex, ey, ez;
+    int alys_recrd[BOARD_CELL_NO][BOARD_CELL_NO][8];
+    int ps_recrd[BOARD_CELL_NO][BOARD_CELL_NO];
+    for (ex=0; ex<BOARD_CELL_NO; ++ex)
+        for (ey=0; ey<BOARD_CELL_NO; ++ey)
+        {
+            ps_recrd[ex][ey] = Piece_Record[ex][ey];
+            for (ez=0; ez<8; ++ez)
+                alys_recrd[ex][ey][ez] = Piece_Analysis_Record[ex][ey][ez];
+        }
+    ps_recrd[pYc][pXc] = 1-2*isWhite;
+    if (gobang_update_state(alys_recrd,ps_recrd, pXc, pYc, isWhite)==(1-isWhite))
+        return -1;  //当造成对方获胜,则舍弃该方案
+    total_score += gobang_get_score(alys_recrd,ps_recrd,pXc, pYc, isWhite);
+    ps_recrd[pYc][pXc] = 0;
+    return total_score;
+}
+//-------------------------------------------------------------------------
+int gobang_get_score(int alys_recrd[][BOARD_CELL_NO][8], int ps_recrd[][BOARD_CELL_NO],int pXc, int pYc, int isWhite)
+{
+    int i;
+    int pm1, pn1, pm2, pn2, pm3, pn3;
+    pm1=0;pn1=0;pm2=0;pn2=0;pm3=0;pn3=0;
+    int total_score = 0;
+    int type_recrd[8];
+    int type_weigh[8]={0,10,20,30,50,60,100,200};
+    for (i=0; i<8; ++i) {type_recrd[i]=0;}
+//成5, 100分
+//活4， 70分
+//死4， 60分
+//活3， 50分
+//死3， 30分
+//活2， 20分
+//死2， 10分 
+//1，    0分
+    //成5
+    if (abs(alys_recrd[pYc][pXc][0])>=5) {type_recrd[7]++;}
+    if (abs(alys_recrd[pYc][pXc][2])>=5) {type_recrd[7]++;}
+    if (abs(alys_recrd[pYc][pXc][4])>=5) {type_recrd[7]++;}
+    if (abs(alys_recrd[pYc][pXc][6])>=5) {type_recrd[7]++;}
+    //4
+    //"****"
+    //horizontal direction
+    pm1 = pXc-alys_recrd[pYc][pXc][1];
+    pm2 = pXc-alys_recrd[pYc][pXc][1]+abs(alys_recrd[pYc][pXc][0])+1;
+    pn1 = pn2 = pYc;
+    if (abs(alys_recrd[pYc][pXc][0])==4 && pm1>=0 && pm2<BOARD_CELL_NO && (ps_recrd[pn1][pm1]+ps_recrd[pn2][pm2])==0)
+    {type_recrd[6]++;}
+    else if (abs(alys_recrd[pYc][pXc][0])==4 && 
+        ((pm1>=0 && pm2<BOARD_CELL_NO && ps_recrd[pn1][pm1]*ps_recrd[pn2][pm2]==0)||
+        (pm1>=0 && pm2>=BOARD_CELL_NO && ps_recrd[pn1][pm1]==0)||
+        (pm1<0 && pm2<BOARD_CELL_NO && ps_recrd[pn2][pm2]==0)) )
+    {type_recrd[5]++;}
+    //verticle direction
+    pn1 = pYc-alys_recrd[pYc][pXc][3];
+    pn2 = pYc-alys_recrd[pYc][pXc][3]+abs(alys_recrd[pYc][pXc][2])+1;
+    pm1 = pm2 = pXc;
+    if (abs(alys_recrd[pYc][pXc][2])==4 && pn1>=0 && pn2<BOARD_CELL_NO && (ps_recrd[pn1][pm1]+ps_recrd[pn2][pm2])==0)
+    {type_recrd[6]++;}
+    else if (abs(alys_recrd[pYc][pXc][2])==4 && 
+        ((pn1>=0 && pn2<BOARD_CELL_NO && ps_recrd[pn1][pm1]*ps_recrd[pn2][pm2]==0)||
+        (pn1>=0 && pn2>=BOARD_CELL_NO && ps_recrd[pn1][pm1]==0)||
+        (pn1<0 && pn2<BOARD_CELL_NO && ps_recrd[pn2][pm2]==0)) )
+    {type_recrd[5]++;}
+    //BL-to-TR direction
+    pm1 = pXc-alys_recrd[pYc][pXc][5];
+    pn1 = pYc+alys_recrd[pYc][pXc][5];
+    pm2 = pXc-alys_recrd[pYc][pXc][5]+abs(alys_recrd[pYc][pXc][4])+1;
+    pn2 = pYc+alys_recrd[pYc][pXc][5]-abs(alys_recrd[pYc][pXc][4])-1;
+    if (abs(alys_recrd[pYc][pXc][4])==4 && pm1>=0 && pn1<BOARD_CELL_NO && pm2<BOARD_CELL_NO && pn2>=0 && (ps_recrd[pn1][pm1]+ps_recrd[pn2][pm2])==0)
+    {type_recrd[6]++;}
+    else if (abs(alys_recrd[pYc][pXc][4])==4 && 
+        ((pm1>=0 && pn1<BOARD_CELL_NO && pm2<BOARD_CELL_NO && pn2>=0 && ps_recrd[pn1][pm1]*ps_recrd[pn2][pm2]==0)||
+        (pm1>=0 && pn1<BOARD_CELL_NO && (pm2>=BOARD_CELL_NO || pn2<0) && ps_recrd[pn1][pm1]==0)||
+        ((pm1<0 || pn1>=BOARD_CELL_NO) && pm2<BOARD_CELL_NO && pn2>=0 && ps_recrd[pn2][pm2]==0)) )
+    {type_recrd[5]++;}
+    //TL-to-BR direction
+    pm1 = pXc-alys_recrd[pYc][pXc][7];
+    pn1 = pYc-alys_recrd[pYc][pXc][7];
+    pm2 = pXc-alys_recrd[pYc][pXc][7]+abs(alys_recrd[pYc][pXc][6])+1;
+    pn2 = pYc-alys_recrd[pYc][pXc][7]+alys_recrd[pYc][pXc][7]+1;
+    if (abs(alys_recrd[pYc][pXc][6])==4 && pm1>=0 && pn1>=0 && pm2<BOARD_CELL_NO && pn2<BOARD_CELL_NO && (ps_recrd[pn1][pm1]+ps_recrd[pn2][pm2])==0)
+    {type_recrd[6]++;}
+    else if (abs(alys_recrd[pYc][pXc][6])==4 && 
+        ((pm1>=0 && pn1>=0 && pm2<BOARD_CELL_NO && pn2<BOARD_CELL_NO && ps_recrd[pn1][pm1]*ps_recrd[pn2][pm2]==0)||
+        (pm1>=0 && pn1>=0 && (pm2>=BOARD_CELL_NO || pn2>=BOARD_CELL_NO) && ps_recrd[pn1][pm1])||
+        ((pm1<0 || pn1<0) && pm2<BOARD_CELL_NO && pn2<BOARD_CELL_NO && ps_recrd[pn2][pm2]==0)) )
+    {type_recrd[5]++;}
+    
+    
+    //"*** *"
+    // horizontal direction 
+    pm1 = pXc-alys_recrd[pYc][pXc][1]-1;
+    pm2 = pXc-alys_recrd[pYc][pXc][1]+abs(alys_recrd[pYc][pXc][0])+1;
+    pn1 = pn2 = pYc;
+    if (pm1>=0 && alys_recrd[pYc][pXc][0]*alys_recrd[pn1][pm1][0]==3 && ps_recrd[pn1][pm1+1]==0)
+    {
+        pm3 = pm1-alys_recrd[pn1][pm1][1];
+        pn3 = pYc;
+        if ((pm3>=0 && ps_recrd[pn3][pm3]==0)&&(pm2<BOARD_CELL_NO && ps_recrd[pn2][pm2]==0 ))
+        {type_recrd[6]++;}
+        else if ((pm3>=0 && ps_recrd[pn3][pm3]==0)||(pm2<BOARD_CELL_NO && ps_recrd[pn2][pm2]==0 ))
+        {type_recrd[5]++;}
+    }
+    pm1 = pXc-alys_recrd[pYc][pXc][1]+abs(alys_recrd[pYc][pXc][0])+2;
+    pm2 = pXc-alys_recrd[pYc][pXc][1];
+    pn1 = pn2 = pYc;
+    if (pm1<BOARD_CELL_NO && alys_recrd[pYc][pXc][0]*alys_recrd[pn1][pm1][0]==3 && ps_recrd[pn1][pm1-1]==0)
+    {
+        pm3 = pm1-alys_recrd[pn1][pm1][1]+abs(alys_recrd[pn1][pm1][0])+1;
+        pn3 = pYc;
+        if ((pm3<BOARD_CELL_NO && ps_recrd[pn3][pm3]==0) && (pm2>=0 && ps_recrd[pn2][pm2]==0 ))
+        {type_recrd[6]++;}
+        else if ((pm3<BOARD_CELL_NO && ps_recrd[pn3][pm3]==0) || (pm2>=0 && ps_recrd[pn2][pm2]==0 ))
+        {type_recrd[5]++;}
+    }
+    // vertical direction 
+    pn1 = pYc-alys_recrd[pYc][pXc][3]-1;
+    pn2 = pYc-alys_recrd[pYc][pXc][3]+abs(alys_recrd[pYc][pXc][2])+1;
+    pm1 = pm2 = pXc;
+    if (pn1>=0 && alys_recrd[pYc][pXc][2]*alys_recrd[pn1][pm1][2]==3 && ps_recrd[pn1+1][pm1]==0)
+    {
+        pn3 = pn1-alys_recrd[pn1][pm1][3];
+        pm3 = pXc;
+        if ((pn3>=0 && ps_recrd[pn3][pm3]==0)&& (pn2<BOARD_CELL_NO && ps_recrd[pn2][pm2]==0 ))
+        {type_recrd[6]++;}
+        else if ((pn3>=0 && ps_recrd[pn3][pm3]==0) || (pn2<BOARD_CELL_NO && ps_recrd[pn2][pm2]==0 ))
+        {type_recrd[5]++;}
+    }
+    pn1 = pYc-alys_recrd[pYc][pXc][3]+abs(alys_recrd[pYc][pXc][2])+2;
+    pn2 = pYc-alys_recrd[pYc][pXc][3];
+    pm1 = pm2 = pXc;
+    if (pn1<BOARD_CELL_NO && alys_recrd[pYc][pXc][2]*alys_recrd[pn1][pm1][2]==3 && ps_recrd[pn1-1][pm1]==0)
+    {
+        pn3 = pn1-alys_recrd[pn1][pm1][3]+abs(alys_recrd[pn1][pm1][2])+1;
+        pm3 = pXc;
+        if ((pn3<BOARD_CELL_NO && ps_recrd[pn3][pm3]==0)&& (pn2>=0 && ps_recrd[pn2][pm2]==0 ))
+        {type_recrd[6]++;}
+        else if ((pn3<BOARD_CELL_NO && ps_recrd[pn3][pm3]==0)|| (pn2>=0 && ps_recrd[pn2][pm2]==0 ))
+        {type_recrd[5]++;}
+    }
+    //BL-to-TR direction
+    pm1 = pXc-alys_recrd[pYc][pXc][5]-1;
+    pn1 = pYc+alys_recrd[pYc][pXc][5]+1;
+    pm2 = pXc-alys_recrd[pYc][pXc][5]+abs(alys_recrd[pYc][pXc][4])+1;
+    pn2 = pYc+alys_recrd[pYc][pXc][5]-abs(alys_recrd[pYc][pXc][4])-1;
+    if (pm1>=0 && pn1<BOARD_CELL_NO && alys_recrd[pYc][pXc][4]*alys_recrd[pn1][pm1][4]==3 && ps_recrd[pn1-1][pm1+1]==0 )
+    {
+        pm3 = pm1-alys_recrd[pn1][pm1][5];
+        pn3 = pn1+alys_recrd[pn1][pm1][5];
+        if ((pm3>=0 && pn3<BOARD_CELL_NO && ps_recrd[pn3][pm3]==0)&& (pm2<BOARD_CELL_NO && pn2>=0 && ps_recrd[pn2][pm2]==0 ))
+        {type_recrd[6]++;}
+        else if ((pm3>=0 && pn3<BOARD_CELL_NO && ps_recrd[pn3][pm3]==0)|| (pm2<BOARD_CELL_NO && pn2>=0 && ps_recrd[pn2][pm2]==0 ))
+        {type_recrd[5]++;}
+    }
+    pm1 = pXc-alys_recrd[pYc][pXc][5]+abs(alys_recrd[pYc][pXc][4])+2;
+    pn1 = pYc+alys_recrd[pYc][pXc][5]-abs(alys_recrd[pYc][pXc][4])-2;
+    pm2 = pXc-alys_recrd[pYc][pXc][5];
+    pn2 = pYc+alys_recrd[pYc][pXc][5];
+    if (pm1<BOARD_CELL_NO && pn1>=0 && alys_recrd[pYc][pXc][4]*alys_recrd[pn1][pm1][4]==3 && ps_recrd[pn1+1][pm1-1]==0 )
+    {
+        pm3 = pm1-alys_recrd[pn1][pm1][5]+abs(alys_recrd[pn1][pm1][4])+1;
+        pn3 = pn1+alys_recrd[pn1][pm1][5]-abs(alys_recrd[pn1][pm1][4])-1;
+        if ((pm3<BOARD_CELL_NO && pn3>=0 && ps_recrd[pn3][pm3]==0)&& (pm2>=0 && pn2<BOARD_CELL_NO && ps_recrd[pn2][pm2]==0 ))
+        {type_recrd[6]++;}
+        else if ((pm3<BOARD_CELL_NO && pn3>=0 && ps_recrd[pn3][pm3]==0)|| (pm2>=0 && pn2<BOARD_CELL_NO && ps_recrd[pn2][pm2]==0 ))
+        {type_recrd[5]++;}
+    }
+    //TL-to-BR direction
+    pm1 = pXc-alys_recrd[pYc][pXc][7]-1;
+    pn1 = pYc-alys_recrd[pYc][pXc][7]-1;
+    pm2 = pXc-alys_recrd[pYc][pXc][7]+abs(alys_recrd[pYc][pXc][6])+1;
+    pn2 = pYc-alys_recrd[pYc][pXc][7]+abs(alys_recrd[pYc][pXc][6])+1;
+    if (pm1>=0 && pn1>=0 && alys_recrd[pYc][pXc][6]*alys_recrd[pn1][pm1][6]==3 && ps_recrd[pn1+1][pm1+1]==0 )
+    {
+        pm3 = pm1-alys_recrd[pn1][pm1][7];
+        pn3 = pn1-alys_recrd[pn1][pm1][7];
+        if ((pm3>=0 && pn3>=0 && ps_recrd[pn3][pm3]==0)&& (pm2<BOARD_CELL_NO && pn2<BOARD_CELL_NO && ps_recrd[pn2][pm2]==0 ))
+        {type_recrd[6]++;}
+        else if ((pm3>=0 && pn3>=0 && ps_recrd[pn3][pm3]==0)|| (pm2<BOARD_CELL_NO && pn2<BOARD_CELL_NO && ps_recrd[pn2][pm2]==0 ))
+        {type_recrd[5]++;}
+    }
+    pm1 = pXc-alys_recrd[pYc][pXc][7]+abs(alys_recrd[pYc][pXc][6])+2;
+    pn1 = pYc-alys_recrd[pYc][pXc][7]+abs(alys_recrd[pYc][pXc][6])+2;
+    pm2 = pXc-alys_recrd[pYc][pXc][7];
+    pn2 = pYc-alys_recrd[pYc][pXc][7];
+    if (pm1<BOARD_CELL_NO && pn1<BOARD_CELL_NO && alys_recrd[pYc][pXc][6]*alys_recrd[pn1][pm1][6]==3 && ps_recrd[pn1-1][pm1-1]==0 )
+    {
+        pm3 = pm1-alys_recrd[pn1][pm1][7]+abs(alys_recrd[pn1][pm1][6])+1;
+        pn3 = pn1-alys_recrd[pn1][pm1][7]+abs(alys_recrd[pn1][pm1][6])+1;
+        if ((pm3<BOARD_CELL_NO && pn3<BOARD_CELL_NO && ps_recrd[pn3][pm3]==0)&& (pm2>=0 && pn2>=0 && ps_recrd[pn2][pm2]==0 ))
+        {type_recrd[6]++;}
+        else if ((pm3<BOARD_CELL_NO && pn3<BOARD_CELL_NO && ps_recrd[pn3][pm3]==0)||(pm2>=0 && pn2>=0 && ps_recrd[pn2][pm2]==0 ))
+        {type_recrd[5]++;}
+    }
+    
+    
+    //"** **"
+    // horizontal direction 
+    pm1 = pXc-alys_recrd[pYc][pXc][1]-1;
+    pm2 = pXc-alys_recrd[pYc][pXc][1]+abs(alys_recrd[pYc][pXc][0])+1;
+    pn1 = pn2 = pYc;
+    if (pm1>=0 && alys_recrd[pYc][pXc][0]==2*(1-2*isWhite) && alys_recrd[pn1][pm1][0]==2*(1-2*isWhite) && ps_recrd[pn1][pm1+1]==0)
+    {
+        pm3 = pm1-alys_recrd[pn1][pm1][1];
+        pn3 = pYc;
+        if ((pm3>=0 && ps_recrd[pn3][pm3]==0)&&(pm2<BOARD_CELL_NO && ps_recrd[pn2][pm2]==0 ))
+        {type_recrd[6]++;}
+        else if ((pm3>=0 && ps_recrd[pn3][pm3]==0)||(pm2<BOARD_CELL_NO && ps_recrd[pn2][pm2]==0 ))
+        {type_recrd[5]++;}
+    }
+    pm1 = pXc-alys_recrd[pYc][pXc][1]+abs(alys_recrd[pYc][pXc][0])+2;
+    pm2 = pXc-alys_recrd[pYc][pXc][1];
+    pn1 = pn2 = pYc;
+    if (pm1<BOARD_CELL_NO && alys_recrd[pYc][pXc][0]==2*(1-2*isWhite) && alys_recrd[pn1][pm1][0]==2*(1-2*isWhite) && ps_recrd[pn1][pm1-1]==0)
+    {
+        pm3 = pm1-alys_recrd[pn1][pm1][1]+abs(alys_recrd[pn1][pm1][0])+1;
+        pn3 = pYc;
+        if ((pm3<BOARD_CELL_NO && ps_recrd[pn3][pm3]==0) && (pm2>=0 && ps_recrd[pn2][pm2]==0 ))
+        {type_recrd[6]++;}
+        else if ((pm3<BOARD_CELL_NO && ps_recrd[pn3][pm3]==0) || (pm2>=0 && ps_recrd[pn2][pm2]==0 ))
+        {type_recrd[5]++;}
+    }
+    // vertical direction 
+    pn1 = pYc-alys_recrd[pYc][pXc][3]-1;
+    pn2 = pYc-alys_recrd[pYc][pXc][3]+abs(alys_recrd[pYc][pXc][2])+1;
+    pm1 = pm2 = pXc;
+    if (pn1>=0 && alys_recrd[pYc][pXc][2]==2*(1-2*isWhite) && alys_recrd[pn1][pm1][2]==2*(1-2*isWhite) && ps_recrd[pn1+1][pm1]==0)
+    {
+        pn3 = pn1-alys_recrd[pn1][pm1][3];
+        pm3 = pXc;
+        if ((pn3>=0 && ps_recrd[pn3][pm3]==0)&& (pn2<BOARD_CELL_NO && ps_recrd[pn2][pm2]==0 ))
+        {type_recrd[6]++;}
+        else if ((pn3>=0 && ps_recrd[pn3][pm3]==0) || (pn2<BOARD_CELL_NO && ps_recrd[pn2][pm2]==0 ))
+        {type_recrd[5]++;}
+    }
+    pn1 = pYc-alys_recrd[pYc][pXc][3]+abs(alys_recrd[pYc][pXc][2])+2;
+    pn2 = pYc-alys_recrd[pYc][pXc][3];
+    pm1 = pm2 = pXc;
+    if (pn1<BOARD_CELL_NO && alys_recrd[pYc][pXc][2]==2*(1-2*isWhite) && alys_recrd[pn1][pm1][2]==2*(1-2*isWhite) && ps_recrd[pn1-1][pm1]==0)
+    {
+        pn3 = pn1-alys_recrd[pn1][pm1][3]+abs(alys_recrd[pn1][pm1][2])+1;
+        pm3 = pXc;
+        if ((pn3<BOARD_CELL_NO && ps_recrd[pn3][pm3]==0)&& (pn2>=0 && ps_recrd[pn2][pm2]==0 ))
+        {type_recrd[6]++;}
+        else if ((pn3<BOARD_CELL_NO && ps_recrd[pn3][pm3]==0)|| (pn2>=0 && ps_recrd[pn2][pm2]==0 ))
+        {type_recrd[5]++;}
+    }
+    //BL-to-TR direction
+    pm1 = pXc-alys_recrd[pYc][pXc][5]-1;
+    pn1 = pYc+alys_recrd[pYc][pXc][5]+1;
+    pm2 = pXc-alys_recrd[pYc][pXc][5]+abs(alys_recrd[pYc][pXc][4])+1;
+    pn2 = pYc+alys_recrd[pYc][pXc][5]-abs(alys_recrd[pYc][pXc][4])-1;
+    if (pm1>=0 && pn1<BOARD_CELL_NO && alys_recrd[pYc][pXc][4]==2*(1-2*isWhite) && alys_recrd[pn1][pm1][4]==2*(1-2*isWhite) && ps_recrd[pn1-1][pm1+1]==0 )
+    {
+        pm3 = pm1-alys_recrd[pn1][pm1][5];
+        pn3 = pn1+alys_recrd[pn1][pm1][5];
+        if ((pm3>=0 && pn3<BOARD_CELL_NO && ps_recrd[pn3][pm3]==0)&& (pm2<BOARD_CELL_NO && pn2>=0 && ps_recrd[pn2][pm2]==0 ))
+        {type_recrd[6]++;}
+        else if ((pm3>=0 && pn3<BOARD_CELL_NO && ps_recrd[pn3][pm3]==0)|| (pm2<BOARD_CELL_NO && pn2>=0 && ps_recrd[pn2][pm2]==0 ))
+        {type_recrd[5]++;}
+    }
+    pm1 = pXc-alys_recrd[pYc][pXc][5]+abs(alys_recrd[pYc][pXc][4])+2;
+    pn1 = pYc+alys_recrd[pYc][pXc][5]-abs(alys_recrd[pYc][pXc][4])-2;
+    pm2 = pXc-alys_recrd[pYc][pXc][5];
+    pn2 = pYc+alys_recrd[pYc][pXc][5];
+    if (pm1<BOARD_CELL_NO && pn1>=0 && alys_recrd[pYc][pXc][4]==2*(1-2*isWhite) && alys_recrd[pn1][pm1][4]==2*(1-2*isWhite) && ps_recrd[pn1+1][pm1-1]==0 )
+    {
+        pm3 = pm1-alys_recrd[pn1][pm1][5]+abs(alys_recrd[pn1][pm1][4])+1;
+        pn3 = pn1+alys_recrd[pn1][pm1][5]-abs(alys_recrd[pn1][pm1][4])-1;
+        if ((pm3<BOARD_CELL_NO && pn3>=0 && ps_recrd[pn3][pm3]==0)&& (pm2>=0 && pn2<BOARD_CELL_NO && ps_recrd[pn2][pm2]==0 ))
+        {type_recrd[6]++;}
+        else if ((pm3<BOARD_CELL_NO && pn3>=0 && ps_recrd[pn3][pm3]==0)|| (pm2>=0 && pn2<BOARD_CELL_NO && ps_recrd[pn2][pm2]==0 ))
+        {type_recrd[5]++;}
+    }
+    //TL-to-BR direction
+    pm1 = pXc-alys_recrd[pYc][pXc][7]-1;
+    pn1 = pYc-alys_recrd[pYc][pXc][7]-1;
+    pm2 = pXc-alys_recrd[pYc][pXc][7]+abs(alys_recrd[pYc][pXc][6])+1;
+    pn2 = pYc-alys_recrd[pYc][pXc][7]+abs(alys_recrd[pYc][pXc][6])+1;
+    if (pm1>=0 && pn1>=0 && alys_recrd[pYc][pXc][6]==2*(1-2*isWhite) && alys_recrd[pn1][pm1][6]==2*(1-2*isWhite) && ps_recrd[pn1+1][pm1+1]==0 )
+    {
+        pm3 = pm1-alys_recrd[pn1][pm1][7];
+        pn3 = pn1-alys_recrd[pn1][pm1][7];
+        if ((pm3>=0 && pn3>=0 && ps_recrd[pn3][pm3]==0)&& (pm2<BOARD_CELL_NO && pn2<BOARD_CELL_NO && ps_recrd[pn2][pm2]==0 ))
+        {type_recrd[6]++;}
+        else if ((pm3>=0 && pn3>=0 && ps_recrd[pn3][pm3]==0)|| (pm2<BOARD_CELL_NO && pn2<BOARD_CELL_NO && ps_recrd[pn2][pm2]==0 ))
+        {type_recrd[5]++;}
+    }
+    pm1 = pXc-alys_recrd[pYc][pXc][7]+abs(alys_recrd[pYc][pXc][6])+2;
+    pn1 = pYc-alys_recrd[pYc][pXc][7]+abs(alys_recrd[pYc][pXc][6])+2;
+    pm2 = pXc-alys_recrd[pYc][pXc][7];
+    pn2 = pYc-alys_recrd[pYc][pXc][7];
+    if (pm1<BOARD_CELL_NO && pn1<BOARD_CELL_NO && alys_recrd[pYc][pXc][6]==2*(1-2*isWhite) && alys_recrd[pn1][pm1][6]==2*(1-2*isWhite) && ps_recrd[pn1-1][pm1-1]==0 )
+    {
+        pm3 = pm1-alys_recrd[pn1][pm1][7]+abs(alys_recrd[pn1][pm1][6])+1;
+        pn3 = pn1-alys_recrd[pn1][pm1][7]+abs(alys_recrd[pn1][pm1][6])+1;
+        if ((pm3<BOARD_CELL_NO && pn3<BOARD_CELL_NO && ps_recrd[pn3][pm3]==0)&& (pm2>=0 && pn2>=0 && ps_recrd[pn2][pm2]==0 ))
+        {type_recrd[6]++;}
+        else if ((pm3<BOARD_CELL_NO && pn3<BOARD_CELL_NO && ps_recrd[pn3][pm3]==0)||(pm2>=0 && pn2>=0 && ps_recrd[pn2][pm2]==0 ))
+        {type_recrd[5]++;}
+    }
+    
+    
+    //3
+    //"***"
+    //horizontal direction
+    pm1 = pXc-alys_recrd[pYc][pXc][1];
+    pm2 = pXc-alys_recrd[pYc][pXc][1]+abs(alys_recrd[pYc][pXc][0])+1;
+    pn1 = pn2 = pYc;
+    if (abs(alys_recrd[pYc][pXc][0])==3 && pm1>=0 && pm2<BOARD_CELL_NO && (ps_recrd[pn1][pm1]+ps_recrd[pn2][pm2])==0)
+    {type_recrd[4]++;}
+    else if (abs(alys_recrd[pYc][pXc][0])==3 && 
+        ((pm1>=0 && pm2<BOARD_CELL_NO && ps_recrd[pn1][pm1]*ps_recrd[pn2][pm2]==0)||
+        (pm1>=0 && pm2>=BOARD_CELL_NO && ps_recrd[pn1][pm1]==0)||
+        (pm1<0 && pm2<BOARD_CELL_NO && ps_recrd[pn2][pm2]==0)) )
+    {type_recrd[3]++;}
+    //verticle direction
+    pn1 = pYc-alys_recrd[pYc][pXc][3];
+    pn2 = pYc-alys_recrd[pYc][pXc][3]+abs(alys_recrd[pYc][pXc][2])+1;
+    pm1 = pm2 = pXc;
+    if (abs(alys_recrd[pYc][pXc][2])==3 && pn1>=0 && pn2<BOARD_CELL_NO && (ps_recrd[pn1][pm1]+ps_recrd[pn2][pm2])==0)
+    {type_recrd[4]++;}
+    else if (abs(alys_recrd[pYc][pXc][2])==3 && 
+        ((pn1>=0 && pn2<BOARD_CELL_NO && ps_recrd[pn1][pm1]*ps_recrd[pn2][pm2]==0)||
+        (pn1>=0 && pn2>=BOARD_CELL_NO && ps_recrd[pn1][pm1]==0)||
+        (pn1<0 && pn2<BOARD_CELL_NO && ps_recrd[pn2][pm2]==0)) )
+    {type_recrd[3]++;}
+    //BL-to-TR direction
+    pm1 = pXc-alys_recrd[pYc][pXc][5];
+    pn1 = pYc+alys_recrd[pYc][pXc][5];
+    pm2 = pXc-alys_recrd[pYc][pXc][5]+abs(alys_recrd[pYc][pXc][4])+1;
+    pn2 = pYc+alys_recrd[pYc][pXc][5]-abs(alys_recrd[pYc][pXc][4])-1;
+    if (abs(alys_recrd[pYc][pXc][4])==3 && pm1>=0 && pn1<BOARD_CELL_NO && pm2<BOARD_CELL_NO && pn2>=0 && (ps_recrd[pn1][pm1]+ps_recrd[pn2][pm2])==0)
+    {type_recrd[4]++;}
+    else if (abs(alys_recrd[pYc][pXc][4])==3 && 
+        ((pm1>=0 && pn1<BOARD_CELL_NO && pm2<BOARD_CELL_NO && pn2>=0 && ps_recrd[pn1][pm1]*ps_recrd[pn2][pm2]==0)||
+        (pm1>=0 && pn1<BOARD_CELL_NO && (pm2>=BOARD_CELL_NO || pn2<0) && ps_recrd[pn1][pm1]==0)||
+        ((pm1<0 || pn1>=BOARD_CELL_NO) && pm2<BOARD_CELL_NO && pn2>=0 && ps_recrd[pn2][pm2]==0)) )
+    {type_recrd[3]++;}
+    //TL-to-BR direction
+    pm1 = pXc-alys_recrd[pYc][pXc][7];
+    pn1 = pYc-alys_recrd[pYc][pXc][7];
+    pm2 = pXc-alys_recrd[pYc][pXc][7]+abs(alys_recrd[pYc][pXc][6])+1;
+    pn2 = pYc-alys_recrd[pYc][pXc][7]+alys_recrd[pYc][pXc][7]+1;
+    if (abs(alys_recrd[pYc][pXc][6])==3 && pm1>=0 && pn1>=0 && pm2<BOARD_CELL_NO && pn2<BOARD_CELL_NO && (ps_recrd[pn1][pm1]+ps_recrd[pn2][pm2])==0)
+    {type_recrd[4]++;}
+    else if (abs(alys_recrd[pYc][pXc][6])==3 && 
+        ((pm1>=0 && pn1>=0 && pm2<BOARD_CELL_NO && pn2<BOARD_CELL_NO && ps_recrd[pn1][pm1]*ps_recrd[pn2][pm2]==0)||
+        (pm1>=0 && pn1>=0 && (pm2>=BOARD_CELL_NO || pn2>=BOARD_CELL_NO) && ps_recrd[pn1][pm1]==0)||
+        ((pm1<0 || pn1<0) && pm2<BOARD_CELL_NO && pn2<BOARD_CELL_NO && ps_recrd[pn2][pm2]==0)) )
+    {type_recrd[3]++;}
+    
+    //"** *"
+    // horizontal direction 
+    pm1 = pXc-alys_recrd[pYc][pXc][1]-1;
+    pm2 = pXc-alys_recrd[pYc][pXc][1]+abs(alys_recrd[pYc][pXc][0])+1;
+    pn1 = pn2 = pYc;
+    if (pm1>=0 && alys_recrd[pYc][pXc][0]*alys_recrd[pn1][pm1][0]==2 && ps_recrd[pn1][pm1+1]==0)
+    {
+        pm3 = pm1-alys_recrd[pn1][pm1][1];
+        pn3 = pYc;
+        if ((pm3>=0 && ps_recrd[pn3][pm3]==0)&&(pm2<BOARD_CELL_NO && ps_recrd[pn2][pm2]==0 ))
+        {type_recrd[4]++;}
+        else if ((pm3>=0 && ps_recrd[pn3][pm3]==0)||(pm2<BOARD_CELL_NO && ps_recrd[pn2][pm2]==0 ))
+        {type_recrd[3]++;}
+    }
+    pm1 = pXc-alys_recrd[pYc][pXc][1]+abs(alys_recrd[pYc][pXc][0])+2;
+    pm2 = pXc-alys_recrd[pYc][pXc][1];
+    pn1 = pn2 = pYc;
+    if (pm1<BOARD_CELL_NO && alys_recrd[pYc][pXc][0]*alys_recrd[pn1][pm1][0]==2 && ps_recrd[pn1][pm1-1]==0)
+    {
+        pm3 = pm1-alys_recrd[pn1][pm1][1]+abs(alys_recrd[pn1][pm1][0])+1;
+        pn3 = pYc;
+        if ((pm3<BOARD_CELL_NO && ps_recrd[pn3][pm3]==0) && (pm2>=0 && ps_recrd[pn2][pm2]==0 ))
+        {type_recrd[4]++;}
+        else if ((pm3<BOARD_CELL_NO && ps_recrd[pn3][pm3]==0) || (pm2>=0 && ps_recrd[pn2][pm2]==0 ))
+        {type_recrd[3]++;}
+    }
+    // vertical direction 
+    pn1 = pYc-alys_recrd[pYc][pXc][3]-1;
+    pn2 = pYc-alys_recrd[pYc][pXc][3]+abs(alys_recrd[pYc][pXc][2])+1;
+    pm1 = pm2 = pXc;
+    if (pn1>=0 && alys_recrd[pYc][pXc][2]*alys_recrd[pn1][pm1][2]==2 && ps_recrd[pn1+1][pm1]==0)
+    {
+        pn3 = pn1-alys_recrd[pn1][pm1][3];
+        pm3 = pXc;
+        if ((pn3>=0 && ps_recrd[pn3][pm3]==0)&& (pn2<BOARD_CELL_NO && ps_recrd[pn2][pm2]==0 ))
+        {type_recrd[4]++;}
+        else if ((pn3>=0 && ps_recrd[pn3][pm3]==0) || (pn2<BOARD_CELL_NO && ps_recrd[pn2][pm2]==0 ))
+        {type_recrd[3]++;}
+    }
+    pn1 = pYc-alys_recrd[pYc][pXc][3]+abs(alys_recrd[pYc][pXc][2])+2;
+    pn2 = pYc-alys_recrd[pYc][pXc][3];
+    pm1 = pm2 = pXc;
+    if (pn1<BOARD_CELL_NO && alys_recrd[pYc][pXc][2]*alys_recrd[pn1][pm1][2]==2 && ps_recrd[pn1-1][pm1]==0)
+    {
+        pn3 = pn1-alys_recrd[pn1][pm1][3]+abs(alys_recrd[pn1][pm1][2])+1;
+        pm3 = pXc;
+        if ((pn3<BOARD_CELL_NO && ps_recrd[pn3][pm3]==0)&& (pn2>=0 && ps_recrd[pn2][pm2]==0 ))
+        {type_recrd[4]++;}
+        else if ((pn3<BOARD_CELL_NO && ps_recrd[pn3][pm3]==0)|| (pn2>=0 && ps_recrd[pn2][pm2]==0 ))
+        {type_recrd[3]++;}
+    }
+    //BL-to-TR direction
+    pm1 = pXc-alys_recrd[pYc][pXc][5]-1;
+    pn1 = pYc+alys_recrd[pYc][pXc][5]+1;
+    pm2 = pXc-alys_recrd[pYc][pXc][5]+abs(alys_recrd[pYc][pXc][4])+1;
+    pn2 = pYc+alys_recrd[pYc][pXc][5]-abs(alys_recrd[pYc][pXc][4])-1;
+    if (pm1>=0 && pn1<BOARD_CELL_NO && alys_recrd[pYc][pXc][4]*alys_recrd[pn1][pm1][4]==2 && ps_recrd[pn1-1][pm1+1]==0 )
+    {
+        pm3 = pm1-alys_recrd[pn1][pm1][5];
+        pn3 = pn1+alys_recrd[pn1][pm1][5];
+        if ((pm3>=0 && pn3<BOARD_CELL_NO && ps_recrd[pn3][pm3]==0)&& (pm2<BOARD_CELL_NO && pn2>=0 && ps_recrd[pn2][pm2]==0 ))
+        {type_recrd[4]++;}
+        else if ((pm3>=0 && pn3<BOARD_CELL_NO && ps_recrd[pn3][pm3]==0)|| (pm2<BOARD_CELL_NO && pn2>=0 && ps_recrd[pn2][pm2]==0 ))
+        {type_recrd[3]++;}
+    }
+    pm1 = pXc-alys_recrd[pYc][pXc][5]+abs(alys_recrd[pYc][pXc][4])+2;
+    pn1 = pYc+alys_recrd[pYc][pXc][5]-abs(alys_recrd[pYc][pXc][4])-2;
+    pm2 = pXc-alys_recrd[pYc][pXc][5];
+    pn2 = pYc+alys_recrd[pYc][pXc][5];
+    if (pm1<BOARD_CELL_NO && pn1>=0 && alys_recrd[pYc][pXc][4]*alys_recrd[pn1][pm1][4]==2 && ps_recrd[pn1+1][pm1-1]==0 )
+    {
+        pm3 = pm1-alys_recrd[pn1][pm1][5]+abs(alys_recrd[pn1][pm1][4])+1;
+        pn3 = pn1+alys_recrd[pn1][pm1][5]-abs(alys_recrd[pn1][pm1][4])-1;
+        if ((pm3<BOARD_CELL_NO && pn3>=0 && ps_recrd[pn3][pm3]==0)&& (pm2>=0 && pn2<BOARD_CELL_NO && ps_recrd[pn2][pm2]==0 ))
+        {type_recrd[4]++;}
+        else if ((pm3<BOARD_CELL_NO && pn3>=0 && ps_recrd[pn3][pm3]==0)|| (pm2>=0 && pn2<BOARD_CELL_NO && ps_recrd[pn2][pm2]==0 ))
+        {type_recrd[3]++;}
+    }
+    //TL-to-BR direction
+    pm1 = pXc-alys_recrd[pYc][pXc][7]-1;
+    pn1 = pYc-alys_recrd[pYc][pXc][7]-1;
+    pm2 = pXc-alys_recrd[pYc][pXc][7]+abs(alys_recrd[pYc][pXc][6])+1;
+    pn2 = pYc-alys_recrd[pYc][pXc][7]+abs(alys_recrd[pYc][pXc][6])+1;
+    if (pm1>=0 && pn1>=0 && alys_recrd[pYc][pXc][6]*alys_recrd[pn1][pm1][6]==2 && ps_recrd[pn1+1][pm1+1]==0 )
+    {
+        pm3 = pm1-alys_recrd[pn1][pm1][7];
+        pn3 = pn1-alys_recrd[pn1][pm1][7];
+        if ((pm3>=0 && pn3>=0 && ps_recrd[pn3][pm3]==0)&& (pm2<BOARD_CELL_NO && pn2<BOARD_CELL_NO && ps_recrd[pn2][pm2]==0 ))
+        {type_recrd[4]++;}
+        else if ((pm3>=0 && pn3>=0 && ps_recrd[pn3][pm3]==0)|| (pm2<BOARD_CELL_NO && pn2<BOARD_CELL_NO && ps_recrd[pn2][pm2]==0 ))
+        {type_recrd[3]++;}
+    }
+    pm1 = pXc-alys_recrd[pYc][pXc][7]+abs(alys_recrd[pYc][pXc][6])+2;
+    pn1 = pYc-alys_recrd[pYc][pXc][7]+abs(alys_recrd[pYc][pXc][6])+2;
+    pm2 = pXc-alys_recrd[pYc][pXc][7];
+    pn2 = pYc-alys_recrd[pYc][pXc][7];
+    if (pm1<BOARD_CELL_NO && pn1<BOARD_CELL_NO && alys_recrd[pYc][pXc][6]*alys_recrd[pn1][pm1][6]==2 && ps_recrd[pn1-1][pm1-1]==0 )
+    {
+        pm3 = pm1-alys_recrd[pn1][pm1][7]+abs(alys_recrd[pn1][pm1][6])+1;
+        pn3 = pn1-alys_recrd[pn1][pm1][7]+abs(alys_recrd[pn1][pm1][6])+1;
+        if ((pm3<BOARD_CELL_NO && pn3<BOARD_CELL_NO && ps_recrd[pn3][pm3]==0)&& (pm2>=0 && pn2>=0 && ps_recrd[pn2][pm2]==0 ))
+        {type_recrd[4]++;}
+        else if ((pm3<BOARD_CELL_NO && pn3<BOARD_CELL_NO && ps_recrd[pn3][pm3]==0)||(pm2>=0 && pn2>=0 && ps_recrd[pn2][pm2]==0 ))
+        {type_recrd[3]++;}
+    }
+    //2
+    //"**"
+    //horizontal direction
+    pm1 = pXc-alys_recrd[pYc][pXc][1];
+    pm2 = pXc-alys_recrd[pYc][pXc][1]+abs(alys_recrd[pYc][pXc][0])+1;
+    pn1 = pn2 = pYc;
+    if (abs(alys_recrd[pYc][pXc][0])==2 && pm1>=0 && pm2<BOARD_CELL_NO && (ps_recrd[pn1][pm1]+ps_recrd[pn2][pm2])==0)
+    {type_recrd[2]++;}
+    else if (abs(alys_recrd[pYc][pXc][0])==2 && 
+        ((pm1>=0 && pm2<BOARD_CELL_NO && ps_recrd[pn1][pm1]*ps_recrd[pn2][pm2]==0)||
+        (pm1>=0 && pm2>=BOARD_CELL_NO && ps_recrd[pn1][pm1]==0)||
+        (pm1<0 && pm2<BOARD_CELL_NO && ps_recrd[pn2][pm2]==0)) )
+    {type_recrd[1]++;}
+    //verticle direction
+    pn1 = pYc-alys_recrd[pYc][pXc][3];
+    pn2 = pYc-alys_recrd[pYc][pXc][3]+abs(alys_recrd[pYc][pXc][2])+1;
+    pm1 = pm2 = pXc;
+    if (abs(alys_recrd[pYc][pXc][2])==2 && pn1>=0 && pn2<BOARD_CELL_NO && (ps_recrd[pn1][pm1]+ps_recrd[pn2][pm2])==0)
+    {type_recrd[2]++;}
+    else if (abs(alys_recrd[pYc][pXc][2])==2 && 
+        ((pn1>=0 && pn2<BOARD_CELL_NO && ps_recrd[pn1][pm1]*ps_recrd[pn2][pm2]==0)||
+        (pn1>=0 && pn2>=BOARD_CELL_NO && ps_recrd[pn1][pm1]==0)||
+        (pn1<0 && pn2<BOARD_CELL_NO && ps_recrd[pn2][pm2]==0)) )
+    {type_recrd[1]++;}
+    //BL-to-TR direction
+    pm1 = pXc-alys_recrd[pYc][pXc][5];
+    pn1 = pYc+alys_recrd[pYc][pXc][5];
+    pm2 = pXc-alys_recrd[pYc][pXc][5]+abs(alys_recrd[pYc][pXc][4])+1;
+    pn2 = pYc+alys_recrd[pYc][pXc][5]-abs(alys_recrd[pYc][pXc][4])-1;
+    if (abs(alys_recrd[pYc][pXc][4])==2 && pm1>=0 && pn1<BOARD_CELL_NO && pm2<BOARD_CELL_NO && pn2>=0 && (ps_recrd[pn1][pm1]+ps_recrd[pn2][pm2])==0)
+    {type_recrd[2]++;}
+    else if (abs(alys_recrd[pYc][pXc][4])==2 && 
+        ((pm1>=0 && pn1<BOARD_CELL_NO && pm2<BOARD_CELL_NO && pn2>=0 && ps_recrd[pn1][pm1]*ps_recrd[pn2][pm2]==0)||
+        (pm1>=0 && pn1<BOARD_CELL_NO && (pm2>=BOARD_CELL_NO || pn2<0) && ps_recrd[pn1][pm1]==0)||
+        ((pm1<0 || pn1>=BOARD_CELL_NO) && pm2<BOARD_CELL_NO && pn2>=0 && ps_recrd[pn2][pm2]==0)) )
+    {type_recrd[1]++;}
+    //TL-to-BR direction
+    pm1 = pXc-alys_recrd[pYc][pXc][7];
+    pn1 = pYc-alys_recrd[pYc][pXc][7];
+    pm2 = pXc-alys_recrd[pYc][pXc][7]+abs(alys_recrd[pYc][pXc][6])+1;
+    pn2 = pYc-alys_recrd[pYc][pXc][7]+alys_recrd[pYc][pXc][7]+1;
+    if (abs(alys_recrd[pYc][pXc][6])==2 && pm1>=0 && pn1>=0 && pm2<BOARD_CELL_NO && pn2<BOARD_CELL_NO && (ps_recrd[pn1][pm1]+ps_recrd[pn2][pm2])==0)
+    {type_recrd[2]++;}
+    else if (abs(alys_recrd[pYc][pXc][6])==2 && 
+        ((pm1>=0 && pn1>=0 && pm2<BOARD_CELL_NO && pn2<BOARD_CELL_NO && ps_recrd[pn1][pm1]*ps_recrd[pn2][pm2]==0)||
+        (pm1>=0 && pn1>=0 && (pm2>=BOARD_CELL_NO || pn2>=BOARD_CELL_NO) && ps_recrd[pn1][pm1])||
+        ((pm1<0 || pn1<0) && pm2<BOARD_CELL_NO && pn2<BOARD_CELL_NO && ps_recrd[pn2][pm2]==0)) )
+    {type_recrd[1]++;}
+    
+    type_recrd[0] = 1;
+    for (i=0; i<8; ++i) {total_score += type_recrd[i]*type_weigh[i];}
+    return total_score;
 }
 //-------------------------------------------------------------------------
 unsigned int gobang_place_piece(int pXc, int pYc)
 {
-    int ii,jj;
+//    int ii,jj;
     unsigned int isWhite = Ongame_Array[2];
     Piece_History[0][0]++;
     Piece_History[Piece_History[0][0]][0] = pXc;
     Piece_History[Piece_History[0][0]][1] = pYc;
     Piece_History[Piece_History[0][0]][2] = isWhite;
     
+    AI_Region[0] = AI_Region[0]>=pXc ? (pXc>0?(pXc-1):0) : AI_Region[0];
+    AI_Region[1] = AI_Region[1]<=pXc ? (pXc<(BOARD_CELL_NO-1)?(pXc+1):(BOARD_CELL_NO-1)) : AI_Region[1];
+    AI_Region[2] = AI_Region[2]>=pYc ? (pYc>0?(pYc-1):0) : AI_Region[2];
+    AI_Region[3] = AI_Region[3]<=pYc ? (pYc<(BOARD_CELL_NO-1)?(pYc+1):(BOARD_CELL_NO-1)) : AI_Region[3];
+        
     gobang_draw_piece(pXc, pYc, isWhite);
 //    if (isWhite == 1)
 //    {
@@ -1099,168 +1704,170 @@ unsigned int gobang_place_piece(int pXc, int pYc)
     //Start update the piece on board
     Piece_Record[pYc][pXc] = 1-2*isWhite;
     
-    ///////////////////////////////////////////////////////////////////
-    //         Start update the state of Horzontal direction         //
-    //////////////////////////////////////////////////////////////////
-    int Series_Start_Point;
-    int Series_End_Point;
-    //left side
-    if (pXc>0 && Piece_Record[pYc][pXc]*Piece_Record[pYc][pXc-1] > 0)
-    {
-        Series_Start_Point = pXc - abs(Piece_Analysis_Record[pYc][pXc-1][0]);
-        Piece_Analysis_Record[pYc][pXc][0] = (1-2*isWhite) + Piece_Analysis_Record[pYc][pXc-1][0];  //how many, 1-black, -1-white
-        Piece_Analysis_Record[pYc][pXc][1] = 1 + Piece_Analysis_Record[pYc][pXc-1][1]; //第几个
-    }
-    else
-    {
-        Series_Start_Point = pXc;
-        Piece_Analysis_Record[pYc][pXc][0] = 1-2*isWhite;  //how many, 1-black, -1-white
-    }
-    //right side
-    if (pXc<BOARD_CELL_NO-1 && Piece_Record[pYc][pXc]*Piece_Record[pYc][pXc+1] > 0)
-    {
-        Series_End_Point = pXc + abs(Piece_Analysis_Record[pYc][pXc+1][0]);
-        Piece_Analysis_Record[pYc][pXc][0] += Piece_Analysis_Record[pYc][pXc+1][0];  //how many, 1-black, -1-white
-    }
-    else
-    {
-        Series_End_Point = pXc;
-    }
-    //decide if the player wins
-    if (abs(Piece_Analysis_Record[pYc][pXc][0]) == 5)
-    {
-        return isWhite;
-    }
-    if (abs(Piece_Analysis_Record[pYc][pXc][0])>5 && Instr_Array[2]==0)
-    {
-        return isWhite;
-    }
-    //update the horizontal state
-    for (ii = Series_Start_Point; ii <= Series_End_Point; ++ii)
-    {
-        Piece_Analysis_Record[pYc][ii][0] = Piece_Analysis_Record[pYc][pXc][0];
-        Piece_Analysis_Record[pYc][ii][1] = ii - Series_Start_Point + 1;
-    }
-    ///////////////////////////////////////////////////////////////////
-    //         Start update the state of Verticle direction          //
-    ///////////////////////////////////////////////////////////////////
-    //top side
-    if (pYc>0 && Piece_Record[pYc][pXc]*Piece_Record[pYc-1][pXc] > 0)
-    {
-        Series_Start_Point = pYc - abs(Piece_Analysis_Record[pYc-1][pXc][2]);
-        Piece_Analysis_Record[pYc][pXc][2] = (1-2*isWhite) + Piece_Analysis_Record[pYc-1][pXc][2];  //how many, 1-black, -1-white
-        Piece_Analysis_Record[pYc][pXc][3] = 1 + Piece_Analysis_Record[pYc-1][pXc][3]; //第几个
-    }
-    else
-    {
-        Series_Start_Point = pYc;
-        Piece_Analysis_Record[pYc][pXc][2] = 1-2*isWhite;  //how many, 1-black, -1-white
-    }
-    //bottom side
-    if (pYc<BOARD_CELL_NO-1 && Piece_Record[pYc][pXc]*Piece_Record[pYc+1][pXc] > 0)
-    {
-        Series_End_Point = pYc + abs(Piece_Analysis_Record[pYc+1][pXc][2]);
-        Piece_Analysis_Record[pYc][pXc][2] += Piece_Analysis_Record[pYc+1][pXc][2];  //how many, 1-black, -1-white
-    }
-    else
-    {
-        Series_End_Point = pYc;
-    }
-    //decide if the player wins
-    if (abs(Piece_Analysis_Record[pYc][pXc][2]) == 5)
-    {
-        return isWhite;
-    }
-    if (abs(Piece_Analysis_Record[pYc][pXc][2])>5 && Instr_Array[2]==0)
-    {
-        return isWhite;
-    }
-    //update the vertical state
-    for (jj = Series_Start_Point; jj <= Series_End_Point; ++jj)
-    {
-        Piece_Analysis_Record[jj][pXc][2] = Piece_Analysis_Record[pYc][pXc][2];
-        Piece_Analysis_Record[jj][pXc][3] = jj - Series_Start_Point + 1;
-    }
-    ///////////////////////////////////////////////////////////////////
-    //         Start update the state of BL-to-TR direction          //
-    ///////////////////////////////////////////////////////////////////
-    int Series_Start_Point2; //verticle start cordinate
-    int Series_Stend_Points; //number of point-series
-    //bottom-left side
-    if (pXc>0 && pYc<BOARD_CELL_NO-1 && Piece_Record[pYc][pXc]*Piece_Record[pYc+1][pXc-1] > 0)
-    {
-        Series_Start_Point = pXc - abs(Piece_Analysis_Record[pYc+1][pXc-1][4]);
-        Series_Start_Point2 = pYc + abs(Piece_Analysis_Record[pYc+1][pXc-1][4]);
-        Piece_Analysis_Record[pYc][pXc][4] = (1-2*isWhite) + Piece_Analysis_Record[pYc+1][pXc-1][4];  //how many, 1-black, -1-white
-        Piece_Analysis_Record[pYc][pXc][5] = 1 + Piece_Analysis_Record[pYc+1][pXc-1][5]; //第几个
-    }
-    else
-    {
-        Series_Start_Point = pXc;
-        Series_Start_Point2 = pYc;
-        Piece_Analysis_Record[pYc][pXc][4] = 1-2*isWhite;  //how many, 1-black, -1-white
-    }
-    //top-right side
-    if (pXc<BOARD_CELL_NO-1 && pYc>0 && Piece_Record[pYc][pXc]*Piece_Record[pYc-1][pXc+1] > 0)
-    {
-        Piece_Analysis_Record[pYc][pXc][4] += Piece_Analysis_Record[pYc-1][pXc+1][4];  //how many, 1-black, -1-white
-    }
-    Series_Stend_Points = abs(Piece_Analysis_Record[pYc][pXc][4]);
-    //decide if the player wins
-    if (Series_Stend_Points == 5)
-    {
-        return isWhite;
-    }
-    if (Series_Stend_Points>5 && Instr_Array[2]==0)
-    {
-        return isWhite;
-    }
-    //update the BL-to-TR state
-    for (ii = 0; ii < Series_Stend_Points; ++ii)
-    {
-        Piece_Analysis_Record[Series_Start_Point2-ii][Series_Start_Point+ii][4] = Piece_Analysis_Record[pYc][pXc][4];
-        Piece_Analysis_Record[Series_Start_Point2-ii][Series_Start_Point+ii][5] = ii + 1;
-    }
-    ///////////////////////////////////////////////////////////////////
-    //         Start update the state of TL-to-BR direction          //
-    ///////////////////////////////////////////////////////////////////
+    unsigned int place_result = gobang_update_state(Piece_Analysis_Record,Piece_Record,pXc, pYc, isWhite);
+    if (place_result!=2)    return place_result;
+//    ///////////////////////////////////////////////////////////////////
+//    //         Start update the state of Horzontal direction         //
+//    //////////////////////////////////////////////////////////////////
+//    int Series_Start_Point;
+//    int Series_End_Point;
+//    //left side
+//    if (pXc>0 && Piece_Record[pYc][pXc]*Piece_Record[pYc][pXc-1] > 0)
+//    {
+//        Series_Start_Point = pXc - abs(Piece_Analysis_Record[pYc][pXc-1][0]);
+//        Piece_Analysis_Record[pYc][pXc][0] = (1-2*isWhite) + Piece_Analysis_Record[pYc][pXc-1][0];  //how many, 1-black, -1-white
+//        Piece_Analysis_Record[pYc][pXc][1] = 1 + Piece_Analysis_Record[pYc][pXc-1][1]; //第几个
+//    }
+//    else
+//    {
+//        Series_Start_Point = pXc;
+//        Piece_Analysis_Record[pYc][pXc][0] = 1-2*isWhite;  //how many, 1-black, -1-white
+//    }
+//    //right side
+//    if (pXc<BOARD_CELL_NO-1 && Piece_Record[pYc][pXc]*Piece_Record[pYc][pXc+1] > 0)
+//    {
+//        Series_End_Point = pXc + abs(Piece_Analysis_Record[pYc][pXc+1][0]);
+//        Piece_Analysis_Record[pYc][pXc][0] += Piece_Analysis_Record[pYc][pXc+1][0];  //how many, 1-black, -1-white
+//    }
+//    else
+//    {
+//        Series_End_Point = pXc;
+//    }
+//    //decide if the player wins
+//    if (abs(Piece_Analysis_Record[pYc][pXc][0]) == 5)
+//    {
+//        return isWhite;
+//    }
+//    if (abs(Piece_Analysis_Record[pYc][pXc][0])>5 && Instr_Array[2]==0)
+//    {
+//        return isWhite;
+//    }
+//    //update the horizontal state
+//    for (ii = Series_Start_Point; ii <= Series_End_Point; ++ii)
+//    {
+//        Piece_Analysis_Record[pYc][ii][0] = Piece_Analysis_Record[pYc][pXc][0];
+//        Piece_Analysis_Record[pYc][ii][1] = ii - Series_Start_Point + 1;
+//    }
+//    ///////////////////////////////////////////////////////////////////
+//    //         Start update the state of Verticle direction          //
+//    ///////////////////////////////////////////////////////////////////
+//    //top side
+//    if (pYc>0 && Piece_Record[pYc][pXc]*Piece_Record[pYc-1][pXc] > 0)
+//    {
+//        Series_Start_Point = pYc - abs(Piece_Analysis_Record[pYc-1][pXc][2]);
+//        Piece_Analysis_Record[pYc][pXc][2] = (1-2*isWhite) + Piece_Analysis_Record[pYc-1][pXc][2];  //how many, 1-black, -1-white
+//        Piece_Analysis_Record[pYc][pXc][3] = 1 + Piece_Analysis_Record[pYc-1][pXc][3]; //第几个
+//    }
+//    else
+//    {
+//        Series_Start_Point = pYc;
+//        Piece_Analysis_Record[pYc][pXc][2] = 1-2*isWhite;  //how many, 1-black, -1-white
+//    }
+//    //bottom side
+//    if (pYc<BOARD_CELL_NO-1 && Piece_Record[pYc][pXc]*Piece_Record[pYc+1][pXc] > 0)
+//    {
+//        Series_End_Point = pYc + abs(Piece_Analysis_Record[pYc+1][pXc][2]);
+//        Piece_Analysis_Record[pYc][pXc][2] += Piece_Analysis_Record[pYc+1][pXc][2];  //how many, 1-black, -1-white
+//    }
+//    else
+//    {
+//        Series_End_Point = pYc;
+//    }
+//    //decide if the player wins
+//    if (abs(Piece_Analysis_Record[pYc][pXc][2]) == 5)
+//    {
+//        return isWhite;
+//    }
+//    if (abs(Piece_Analysis_Record[pYc][pXc][2])>5 && Instr_Array[2]==0)
+//    {
+//        return isWhite;
+//    }
+//    //update the vertical state
+//    for (jj = Series_Start_Point; jj <= Series_End_Point; ++jj)
+//    {
+//        Piece_Analysis_Record[jj][pXc][2] = Piece_Analysis_Record[pYc][pXc][2];
+//        Piece_Analysis_Record[jj][pXc][3] = jj - Series_Start_Point + 1;
+//    }
+//    ///////////////////////////////////////////////////////////////////
+//    //         Start update the state of BL-to-TR direction          //
+//    ///////////////////////////////////////////////////////////////////
 //    int Series_Start_Point2; //verticle start cordinate
 //    int Series_Stend_Points; //number of point-series
-    //top-left side
-    if (pXc>0 && pYc>0 && Piece_Record[pYc][pXc]*Piece_Record[pYc-1][pXc-1] > 0)
-    {
-        Series_Start_Point = pXc - abs(Piece_Analysis_Record[pYc-1][pXc-1][6]);
-        Series_Start_Point2 = pYc - abs(Piece_Analysis_Record[pYc-1][pXc-1][6]);
-        Piece_Analysis_Record[pYc][pXc][6] = (1-2*isWhite) + Piece_Analysis_Record[pYc-1][pXc-1][6];  //how many, 1-black, -1-white
-        Piece_Analysis_Record[pYc][pXc][7] = 1 + Piece_Analysis_Record[pYc-1][pXc-1][7]; //第几个
-    }
-    else
-    {
-        Series_Start_Point = pXc;
-        Series_Start_Point2 = pYc;
-        Piece_Analysis_Record[pYc][pXc][6] = 1-2*isWhite;  //how many, 1-black, -1-white
-    }
-    //bottom-right side
-    if (pXc<BOARD_CELL_NO-1 && pYc<BOARD_CELL_NO-1 && Piece_Record[pYc][pXc]*Piece_Record[pYc+1][pXc+1] > 0)
-    {
-        Piece_Analysis_Record[pYc][pXc][6] += Piece_Analysis_Record[pYc+1][pXc+1][6];  //how many, 1-black, -1-white
-    }
-    Series_Stend_Points = abs(Piece_Analysis_Record[pYc][pXc][6]);
-    //decide if the player wins
-    if (Series_Stend_Points == 5)
-    {
-        return isWhite;
-    }
-    if (Series_Stend_Points>5 && Instr_Array[2]==0)
-    {
-        return isWhite;
-    }
-    //update the TL-to-BR state
-    for (ii = 0; ii < Series_Stend_Points; ++ii)
-    {
-        Piece_Analysis_Record[Series_Start_Point2+ii][Series_Start_Point+ii][6] = Piece_Analysis_Record[pYc][pXc][6];
-        Piece_Analysis_Record[Series_Start_Point2+ii][Series_Start_Point+ii][7] = ii + 1;
-    }
+//    //bottom-left side
+//    if (pXc>0 && pYc<BOARD_CELL_NO-1 && Piece_Record[pYc][pXc]*Piece_Record[pYc+1][pXc-1] > 0)
+//    {
+//        Series_Start_Point = pXc - abs(Piece_Analysis_Record[pYc+1][pXc-1][4]);
+//        Series_Start_Point2 = pYc + abs(Piece_Analysis_Record[pYc+1][pXc-1][4]);
+//        Piece_Analysis_Record[pYc][pXc][4] = (1-2*isWhite) + Piece_Analysis_Record[pYc+1][pXc-1][4];  //how many, 1-black, -1-white
+//        Piece_Analysis_Record[pYc][pXc][5] = 1 + Piece_Analysis_Record[pYc+1][pXc-1][5]; //第几个
+//    }
+//    else
+//    {
+//        Series_Start_Point = pXc;
+//        Series_Start_Point2 = pYc;
+//        Piece_Analysis_Record[pYc][pXc][4] = 1-2*isWhite;  //how many, 1-black, -1-white
+//    }
+//    //top-right side
+//    if (pXc<BOARD_CELL_NO-1 && pYc>0 && Piece_Record[pYc][pXc]*Piece_Record[pYc-1][pXc+1] > 0)
+//    {
+//        Piece_Analysis_Record[pYc][pXc][4] += Piece_Analysis_Record[pYc-1][pXc+1][4];  //how many, 1-black, -1-white
+//    }
+//    Series_Stend_Points = abs(Piece_Analysis_Record[pYc][pXc][4]);
+//    //decide if the player wins
+//    if (Series_Stend_Points == 5)
+//    {
+//        return isWhite;
+//    }
+//    if (Series_Stend_Points>5 && Instr_Array[2]==0)
+//    {
+//        return isWhite;
+//    }
+//    //update the BL-to-TR state
+//    for (ii = 0; ii < Series_Stend_Points; ++ii)
+//    {
+//        Piece_Analysis_Record[Series_Start_Point2-ii][Series_Start_Point+ii][4] = Piece_Analysis_Record[pYc][pXc][4];
+//        Piece_Analysis_Record[Series_Start_Point2-ii][Series_Start_Point+ii][5] = ii + 1;
+//    }
+//    ///////////////////////////////////////////////////////////////////
+//    //         Start update the state of TL-to-BR direction          //
+//    ///////////////////////////////////////////////////////////////////
+////    int Series_Start_Point2; //verticle start cordinate
+////    int Series_Stend_Points; //number of point-series
+//    //top-left side
+//    if (pXc>0 && pYc>0 && Piece_Record[pYc][pXc]*Piece_Record[pYc-1][pXc-1] > 0)
+//    {
+//        Series_Start_Point = pXc - abs(Piece_Analysis_Record[pYc-1][pXc-1][6]);
+//        Series_Start_Point2 = pYc - abs(Piece_Analysis_Record[pYc-1][pXc-1][6]);
+//        Piece_Analysis_Record[pYc][pXc][6] = (1-2*isWhite) + Piece_Analysis_Record[pYc-1][pXc-1][6];  //how many, 1-black, -1-white
+//        Piece_Analysis_Record[pYc][pXc][7] = 1 + Piece_Analysis_Record[pYc-1][pXc-1][7]; //第几个
+//    }
+//    else
+//    {
+//        Series_Start_Point = pXc;
+//        Series_Start_Point2 = pYc;
+//        Piece_Analysis_Record[pYc][pXc][6] = 1-2*isWhite;  //how many, 1-black, -1-white
+//    }
+//    //bottom-right side
+//    if (pXc<BOARD_CELL_NO-1 && pYc<BOARD_CELL_NO-1 && Piece_Record[pYc][pXc]*Piece_Record[pYc+1][pXc+1] > 0)
+//    {
+//        Piece_Analysis_Record[pYc][pXc][6] += Piece_Analysis_Record[pYc+1][pXc+1][6];  //how many, 1-black, -1-white
+//    }
+//    Series_Stend_Points = abs(Piece_Analysis_Record[pYc][pXc][6]);
+//    //decide if the player wins
+//    if (Series_Stend_Points == 5)
+//    {
+//        return isWhite;
+//    }
+//    if (Series_Stend_Points>5 && Instr_Array[2]==0)
+//    {
+//        return isWhite;
+//    }
+//    //update the TL-to-BR state
+//    for (ii = 0; ii < Series_Stend_Points; ++ii)
+//    {
+//        Piece_Analysis_Record[Series_Start_Point2+ii][Series_Start_Point+ii][6] = Piece_Analysis_Record[pYc][pXc][6];
+//        Piece_Analysis_Record[Series_Start_Point2+ii][Series_Start_Point+ii][7] = ii + 1;
+//    }
     
     ///////////////////////////////////////////////////////////////////
     //          Start check if the hand-cut problem exists           //
@@ -1275,6 +1882,185 @@ unsigned int gobang_place_piece(int pXc, int pYc)
     
     Ongame_Array[2] = 1 - Ongame_Array[2];
     gobang_instrB_ondisplay();    //refresh instruction part
+    return 2;
+}
+//-------------------------------------------------------------------------
+unsigned int gobang_update_state(int alys_recrd[][BOARD_CELL_NO][8], int ps_recrd[][BOARD_CELL_NO], int pXc, int pYc, int isWhite)
+{
+    ///////////////////////////////////////////////////////////////////
+    //         Start update the state of Horzontal direction         //
+    //////////////////////////////////////////////////////////////////
+    int ii, jj;
+    int Series_Start_Point;
+    int Series_End_Point;
+    //left side
+    if (pXc>0 && ps_recrd[pYc][pXc]*ps_recrd[pYc][pXc-1] > 0)
+    {
+        Series_Start_Point = pXc - abs(alys_recrd[pYc][pXc-1][0]);
+        alys_recrd[pYc][pXc][0] = (1-2*isWhite) + alys_recrd[pYc][pXc-1][0];  //how many, 1-black, -1-white
+        alys_recrd[pYc][pXc][1] = 1 + alys_recrd[pYc][pXc-1][1]; //第几个
+    }
+    else
+    {
+        Series_Start_Point = pXc;
+        alys_recrd[pYc][pXc][0] = 1-2*isWhite;  //how many, 1-black, -1-white
+    }
+    //right side
+    if (pXc<BOARD_CELL_NO-1 && ps_recrd[pYc][pXc]*ps_recrd[pYc][pXc+1] > 0)
+    {
+        Series_End_Point = pXc + abs(alys_recrd[pYc][pXc+1][0]);
+        alys_recrd[pYc][pXc][0] += alys_recrd[pYc][pXc+1][0];  //how many, 1-black, -1-white
+    }
+    else
+    {
+        Series_End_Point = pXc;
+    }
+    //decide if the player wins
+    if (abs(alys_recrd[pYc][pXc][0]) == 5)
+    {
+        return isWhite;
+    }
+    if (abs(alys_recrd[pYc][pXc][0])>5 && (Instr_Array[2]==0||isWhite==1))
+    {
+        return isWhite;
+    }
+    //update the horizontal state
+    for (ii = Series_Start_Point; ii <= Series_End_Point; ++ii)
+    {
+        alys_recrd[pYc][ii][0] = alys_recrd[pYc][pXc][0];
+        alys_recrd[pYc][ii][1] = ii - Series_Start_Point + 1;
+    }
+    ///////////////////////////////////////////////////////////////////
+    //         Start update the state of Verticle direction          //
+    ///////////////////////////////////////////////////////////////////
+    //top side
+    if (pYc>0 && ps_recrd[pYc][pXc]*ps_recrd[pYc-1][pXc] > 0)
+    {
+        Series_Start_Point = pYc - abs(alys_recrd[pYc-1][pXc][2]);
+        alys_recrd[pYc][pXc][2] = (1-2*isWhite) + alys_recrd[pYc-1][pXc][2];  //how many, 1-black, -1-white
+        alys_recrd[pYc][pXc][3] = 1 + alys_recrd[pYc-1][pXc][3]; //第几个
+    }
+    else
+    {
+        Series_Start_Point = pYc;
+        alys_recrd[pYc][pXc][2] = 1-2*isWhite;  //how many, 1-black, -1-white
+    }
+    //bottom side
+    if (pYc<BOARD_CELL_NO-1 && ps_recrd[pYc][pXc]*ps_recrd[pYc+1][pXc] > 0)
+    {
+        Series_End_Point = pYc + abs(alys_recrd[pYc+1][pXc][2]);
+        alys_recrd[pYc][pXc][2] += alys_recrd[pYc+1][pXc][2];  //how many, 1-black, -1-white
+    }
+    else
+    {
+        Series_End_Point = pYc;
+    }
+    //decide if the player wins
+    if (abs(alys_recrd[pYc][pXc][2]) == 5)
+    {
+        return isWhite;
+    }
+    if (abs(alys_recrd[pYc][pXc][2])>5 && Instr_Array[2]==0)
+    {
+        return isWhite;
+    }
+    //update the vertical state
+    for (jj = Series_Start_Point; jj <= Series_End_Point; ++jj)
+    {
+        alys_recrd[jj][pXc][2] = alys_recrd[pYc][pXc][2];
+        alys_recrd[jj][pXc][3] = jj - Series_Start_Point + 1;
+    }
+    ///////////////////////////////////////////////////////////////////
+    //         Start update the state of BL-to-TR direction          //
+    ///////////////////////////////////////////////////////////////////
+    int Series_Start_Point2; //verticle start cordinate
+    int Series_Stend_Points; //number of point-series
+    //bottom-left side
+    if (pXc>0 && pYc<BOARD_CELL_NO-1 && ps_recrd[pYc][pXc]*ps_recrd[pYc+1][pXc-1] > 0)
+    {
+        Series_Start_Point = pXc - abs(alys_recrd[pYc+1][pXc-1][4]);
+        Series_Start_Point2 = pYc + abs(alys_recrd[pYc+1][pXc-1][4]);
+        alys_recrd[pYc][pXc][4] = (1-2*isWhite) + alys_recrd[pYc+1][pXc-1][4];  //how many, 1-black, -1-white
+        alys_recrd[pYc][pXc][5] = 1 + alys_recrd[pYc+1][pXc-1][5]; //第几个
+    }
+    else
+    {
+        Series_Start_Point = pXc;
+        Series_Start_Point2 = pYc;
+        alys_recrd[pYc][pXc][4] = 1-2*isWhite;  //how many, 1-black, -1-white
+    }
+    //top-right side
+    if (pXc<BOARD_CELL_NO-1 && pYc>0 && ps_recrd[pYc][pXc]*ps_recrd[pYc-1][pXc+1] > 0)
+    {
+        alys_recrd[pYc][pXc][4] += alys_recrd[pYc-1][pXc+1][4];  //how many, 1-black, -1-white
+    }
+    Series_Stend_Points = abs(alys_recrd[pYc][pXc][4]);
+    //decide if the player wins
+    if (Series_Stend_Points == 5)
+    {
+        return isWhite;
+    }
+    if (Series_Stend_Points>5 && (Instr_Array[2]==0||isWhite==1))
+    {
+        return isWhite;
+    }
+    //update the BL-to-TR state
+    for (ii = 0; ii < Series_Stend_Points; ++ii)
+    {
+        alys_recrd[Series_Start_Point2-ii][Series_Start_Point+ii][4] = alys_recrd[pYc][pXc][4];
+        alys_recrd[Series_Start_Point2-ii][Series_Start_Point+ii][5] = ii + 1;
+    }
+    ///////////////////////////////////////////////////////////////////
+    //         Start update the state of TL-to-BR direction          //
+    ///////////////////////////////////////////////////////////////////
+//    int Series_Start_Point2; //verticle start cordinate
+//    int Series_Stend_Points; //number of point-series
+    //top-left side
+    if (pXc>0 && pYc>0 && ps_recrd[pYc][pXc]*ps_recrd[pYc-1][pXc-1] > 0)
+    {
+        Series_Start_Point = pXc - abs(alys_recrd[pYc-1][pXc-1][6]);
+        Series_Start_Point2 = pYc - abs(alys_recrd[pYc-1][pXc-1][6]);
+        alys_recrd[pYc][pXc][6] = (1-2*isWhite) + alys_recrd[pYc-1][pXc-1][6];  //how many, 1-black, -1-white
+        alys_recrd[pYc][pXc][7] = 1 + alys_recrd[pYc-1][pXc-1][7]; //第几个
+    }
+    else
+    {
+        Series_Start_Point = pXc;
+        Series_Start_Point2 = pYc;
+        alys_recrd[pYc][pXc][6] = 1-2*isWhite;  //how many, 1-black, -1-white
+    }
+    //bottom-right side
+    if (pXc<BOARD_CELL_NO-1 && pYc<BOARD_CELL_NO-1 && ps_recrd[pYc][pXc]*Piece_Record[pYc+1][pXc+1] > 0)
+    {
+        alys_recrd[pYc][pXc][6] += alys_recrd[pYc+1][pXc+1][6];  //how many, 1-black, -1-white
+    }
+    Series_Stend_Points = abs(alys_recrd[pYc][pXc][6]);
+    //decide if the player wins
+    if (Series_Stend_Points == 5)
+    {
+        return isWhite;
+    }
+    if (Series_Stend_Points>5 && (Instr_Array[2]==0||isWhite==1))
+    {
+        return isWhite;
+    }
+    //update the TL-to-BR state
+    for (ii = 0; ii < Series_Stend_Points; ++ii)
+    {
+        alys_recrd[Series_Start_Point2+ii][Series_Start_Point+ii][6] = alys_recrd[pYc][pXc][6];
+        alys_recrd[Series_Start_Point2+ii][Series_Start_Point+ii][7] = ii + 1;
+    }
+    
+    ///////////////////////////////////////////////////////////////////
+    //          Start check if the hand-cut problem exists           //
+    /////////////////////////////////////////////////////////////////// 
+    if (Instr_Array[2]==1 && Ongame_Array[5]==0)
+    {
+        if (gobang_handcut_check(alys_recrd, isWhite, pXc, pYc))
+        {
+            return 1; //白方获胜
+        }
+    }
     return 2;
 }
 //-------------------------------------------------------------------------
@@ -1326,7 +2112,7 @@ unsigned int gobang_proc_lclick(int posx, int posy)
     if (game_status==2 && Instr_Array[3]==0) //Peer-to-PC
     {
         int CPiece[3];
-        gobang_ai_algorithm(CPiece, Ongame_Array[2]);   //computer generate position of piece,
+        gobang_proc_ai(CPiece, Ongame_Array[2]);   //computer generate position of piece,
                                                         //Cpiece-to store position, Ongame_Array[2]-current piece color
         game_status = gobang_place_piece(CPiece[0], CPiece[1]);
     }
@@ -1735,33 +2521,33 @@ unsigned int gobang_handcut_check(int alys_recrd[][BOARD_CELL_NO][8], unsigned i
         
     if (hc_three >= 2 || hc_four >= 2 || hc_six >= 1)
     { 
-        gobang_draw_circle(BOARD_PIECE_RADIUS/2, (pXc*BOARD_HOR_MARGIN+BOARD_LEFT_EDGE), (pYc*BOARD_VER_MARGIN+BOARD_TOP_EDGE));
-        
-        Instr_Array[0] = 0;
-        int IBDebug_Left, IBDebug_Top;
-        IBDebug_Left=480; IBDebug_Top=170;
-        gobang_box_fill(120, 275, IBDebug_Left, IBDebug_Top);       
-        gobang_show_text("调试结果：", IBDebug_Left, IBDebug_Top);
-        gobang_show_text("pXc=", IBDebug_Left, IBDebug_Top+25); gobang_show_num((pXc+1), IBDebug_Left+40, IBDebug_Top+25);
-        gobang_show_text("pYc=", IBDebug_Left+60, IBDebug_Top+25); gobang_show_num((pYc+1), IBDebug_Left+100, IBDebug_Top+25);
-        
-        gobang_show_text("alys_recrd:", IBDebug_Left, IBDebug_Top+45);
-//        int i, j;
-        for (i=0; i<4; ++i)
-        {
-            gobang_show_num(alys_recrd[pYc][pXc][2*i], (IBDebug_Left+20*i), IBDebug_Top+65);
-            gobang_show_num(alys_recrd[pYc][pXc][2*i+1], (IBDebug_Left+20*i), IBDebug_Top+85);
-        }
-        gobang_show_text("***************", IBDebug_Left, IBDebug_Top+105);
-        for (i=0; i<8; ++i)
-            for (j=0; j<6; ++j)
-            {
-                gobang_show_num(hc_recrd[i][j], (IBDebug_Left+20*j), (IBDebug_Top+125+16*i));
-            }
-        
-//        gobang_show_text("3连=", 480, 290); gobang_show_num(hc_three, 540, 290);
-//        gobang_show_text("4连=", 480, 310); gobang_show_num(hc_four, 540, 310);
-//        gobang_show_text("6连=", 480, 330); gobang_show_num(hc_six, 540, 330);
+//        gobang_draw_circle(BOARD_PIECE_RADIUS/2, (pXc*BOARD_HOR_MARGIN+BOARD_LEFT_EDGE), (pYc*BOARD_VER_MARGIN+BOARD_TOP_EDGE));
+//        
+//        Instr_Array[0] = 0;
+//        int IBDebug_Left, IBDebug_Top;
+//        IBDebug_Left=480; IBDebug_Top=170;
+//        gobang_box_fill(120, 275, IBDebug_Left, IBDebug_Top);       
+//        gobang_show_text("调试结果：", IBDebug_Left, IBDebug_Top);
+//        gobang_show_text("pXc=", IBDebug_Left, IBDebug_Top+25); gobang_show_num((pXc+1), IBDebug_Left+40, IBDebug_Top+25);
+//        gobang_show_text("pYc=", IBDebug_Left+60, IBDebug_Top+25); gobang_show_num((pYc+1), IBDebug_Left+100, IBDebug_Top+25);
+//        
+//        gobang_show_text("alys_recrd:", IBDebug_Left, IBDebug_Top+45);
+////        int i, j;
+//        for (i=0; i<4; ++i)
+//        {
+//            gobang_show_num(alys_recrd[pYc][pXc][2*i], (IBDebug_Left+20*i), IBDebug_Top+65);
+//            gobang_show_num(alys_recrd[pYc][pXc][2*i+1], (IBDebug_Left+20*i), IBDebug_Top+85);
+//        }
+//        gobang_show_text("***************", IBDebug_Left, IBDebug_Top+105);
+//        for (i=0; i<8; ++i)
+//            for (j=0; j<6; ++j)
+//            {
+//                gobang_show_num(hc_recrd[i][j], (IBDebug_Left+20*j), (IBDebug_Top+125+16*i));
+//            }
+//        
+////        gobang_show_text("3连=", 480, 290); gobang_show_num(hc_three, 540, 290);
+////        gobang_show_text("4连=", 480, 310); gobang_show_num(hc_four, 540, 310);
+////        gobang_show_text("6连=", 480, 330); gobang_show_num(hc_six, 540, 330);
         
         return 1;
     }

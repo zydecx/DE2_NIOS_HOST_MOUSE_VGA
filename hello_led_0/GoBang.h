@@ -31,6 +31,8 @@ int Instr_Array[INSTR_ARRAY_SIZE];
 //Ongame_Array[5]:0-No. of Rounds, 1-current round, 2-current color(W-1/B-0), 3-B wins rounds, 4-W wins rounds, 5-roll back function
 #define ONGAME_ARRAY_SIZE    6
 int Ongame_Array[ONGAME_ARRAY_SIZE];
+#define AI_SEARCH_REGION    4
+int AI_Region[AI_SEARCH_REGION];
    
 void reset_piece_record_array();    //reset all arrays
 void reset_game_config_array();
@@ -86,7 +88,11 @@ unsigned int gobang_place_piece(int, int);
 unsigned int gobang_handcut_check(int[][BOARD_CELL_NO][8], unsigned int, int, int);
 //computer generate position of piece,
 //Array to store position and color(0-B, 1-W), current piece color(0-B, 1-W)
-void gobang_ai_algorithm(int[3], int);   
+void gobang_proc_ai(int[3], int);   
+int gobang_ai_algorithm(int, int, int);
+int gobang_opti_score(int[2], int);
+int gobang_get_score(int[][BOARD_CELL_NO][8], int[][BOARD_CELL_NO],int, int, int);
+unsigned int gobang_update_state(int[][BOARD_CELL_NO][8], int[][BOARD_CELL_NO], int, int, int);
 void gobang_roll_back();    //悔棋处理函数
 void gobang_replay_game();  //回放处理函数 
         
